@@ -3,311 +3,282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAZ STORE - Fixed Search</title>
-    <!-- Ultra Modern Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <title>FAZ STORE - CyberOS</title>
+    <!-- Tech Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #00ffaa;       /* Neon Mint */
-            --primary-dim: rgba(0, 255, 170, 0.15);
-            --secondary: #3b82f6;     /* Tech Blue */
-            --bg-body: #050505;       /* True Black */
-            --bg-surface: #121212;    /* Surface Grey */
+            --neon-green: #0aff60;
+            --neon-blue: #00f3ff;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --bg-dark: #050505;
             --text-main: #ffffff;
-            --text-sec: #a1a1aa;
-            --ease-elastic: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+            --text-dim: #888888;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
 
         body {
             margin: 0; padding: 0;
-            font-family: 'Manrope', sans-serif;
-            background-color: var(--bg-body);
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-dark);
             color: var(--text-main);
             overflow-x: hidden;
             height: 100vh;
-            width: 100vw;
+            /* Animated Background */
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(10, 255, 96, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(0, 243, 255, 0.08), transparent 25%);
+            animation: bgPulse 10s infinite alternate;
         }
 
-        /* --- VIEWS ARCHITECTURE --- */
-        .view {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            overflow-y: auto; overflow-x: hidden;
-            background: var(--bg-body);
-            transition: transform 0.4s var(--ease-smooth), opacity 0.4s ease;
-            padding-bottom: 80px; 
-        }
+        @keyframes bgPulse { 0% { background-size: 100% 100%; } 100% { background-size: 110% 110%; } }
 
-        .view.hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
-        .view.active { transform: translateX(0); opacity: 1; pointer-events: all; }
+        /* --- UI COMPONENTS --- */
         
-        #productView { z-index: 50; background: var(--bg-body); padding-bottom: 0; }
-
-        /* --- HEADER --- */
+        /* 1. HEADER */
         .header {
-            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 40;
-            background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
+            padding: 20px; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 50;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            background: rgba(5,5,5,0.7);
         }
 
-        .brand { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
-        .brand span { color: var(--primary); }
-        .verified-badge { width: 20px; height: 20px; filter: drop-shadow(0 0 8px var(--secondary)); }
+        .brand {
+            display: flex; align-items: center; gap: 10px;
+            font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700;
+        }
+        .brand span { color: var(--neon-green); text-shadow: 0 0 10px rgba(10,255,96,0.4); }
+        .verified-badge { width: 22px; height: 22px; filter: drop-shadow(0 0 5px var(--neon-blue)); }
 
-        .search-trigger {
-            width: 40px; height: 40px; border-radius: 50%; background: #1a1a1a;
-            display: flex; align-items: center; justify-content: center; font-size: 18px;
-            cursor: pointer; transition: 0.2s;
+        .search-icon {
+            width: 44px; height: 44px; border-radius: 12px;
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            cursor: pointer; transition: 0.3s;
         }
-        .search-trigger:active { transform: scale(0.9); }
+        .search-icon:hover { background: var(--neon-green); color: #000; box-shadow: 0 0 15px var(--neon-green); }
 
-        /* --- HERO --- */
-        .hero-wrap {
-            height: 220px; position: relative; overflow: hidden; margin: 20px;
-            border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .hero-slide {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover; background-position: center;
-        }
-        .hero-overlay {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to top, #000 0%, transparent 80%);
-            display: flex; flex-direction: column; justify-content: flex-end; padding: 25px;
-        }
-        .hero-tag { background: var(--primary); color: #000; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; width: fit-content; margin-bottom: 8px; }
-        .hero-title { font-size: 28px; font-weight: 800; line-height: 1.1; max-width: 80%; }
-
-        /* --- CATEGORIES --- */
+        /* 2. CATEGORIES (Pills) */
         .cat-scroll {
-            display: flex; gap: 12px; padding: 0 20px; overflow-x: auto;
-            scrollbar-width: none; margin-bottom: 25px;
+            display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; margin-bottom: 20px;
+            scrollbar-width: none;
         }
-        .cat-chip {
-            padding: 10px 20px; background: #1a1a1a; border-radius: 50px;
-            font-size: 13px; font-weight: 600; color: #888; white-space: nowrap;
-            border: 1px solid rgba(255,255,255,0.05); transition: 0.3s;
+        .cat-pill {
+            padding: 8px 18px; border-radius: 50px; background: var(--glass-bg);
+            border: 1px solid var(--glass-border); color: var(--text-dim); font-size: 13px; font-weight: 600;
+            white-space: nowrap; transition: 0.3s; cursor: pointer;
         }
-        .cat-chip.active { background: var(--primary); color: #000; border-color: var(--primary); }
+        .cat-pill.active {
+            background: rgba(10, 255, 96, 0.1); border-color: var(--neon-green); color: var(--neon-green);
+        }
 
-        /* --- GRID --- */
-        .section-title { padding: 0 20px; font-size: 18px; font-weight: 700; margin-bottom: 15px; }
+        /* 3. HERO CARD (Holographic) */
+        .hero-wrap { padding: 0 20px; margin-bottom: 30px; }
+        .hero-card {
+            height: 200px; border-radius: 24px; position: relative; overflow: hidden;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .hero-bg {
+            width: 100%; height: 100%; object-fit: cover; opacity: 0.7;
+            transition: transform 5s ease;
+        }
+        .hero-card:hover .hero-bg { transform: scale(1.1); }
+        .hero-content {
+            position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px;
+            background: linear-gradient(to top, #000, transparent);
+        }
+        .glitch-text {
+            font-family: 'Space Grotesk'; font-size: 26px; font-weight: 800; color: #fff;
+            text-shadow: 2px 2px var(--neon-blue);
+        }
+
+        /* 4. GRID LAYOUT */
+        .grid-title { padding: 0 20px; font-family: 'Space Grotesk'; font-size: 18px; margin-bottom: 15px; color: var(--text-dim); }
+        
         .grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 15px; padding: 0 20px 40px 20px;
+            gap: 15px; padding: 0 20px 100px 20px;
         }
 
         .card {
-            background: var(--bg-surface); border-radius: 20px; padding: 12px;
-            position: relative; transition: 0.2s; cursor: pointer;
-            border: 1px solid rgba(255,255,255,0.03);
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            border-radius: 20px; padding: 12px; position: relative;
+            transition: 0.3s; cursor: pointer; overflow: hidden;
         }
-        .card:active { transform: scale(0.96); }
+        .card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
+            transform: skewX(-25deg); transition: 0.5s;
+        }
+        .card:hover::before { left: 150%; }
 
-        .card-img {
-            width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover;
-            background: #222; margin-bottom: 12px;
-        }
-        .badge {
-            position: absolute; top: 10px; left: 10px; font-size: 9px; font-weight: 800;
-            padding: 4px 8px; border-radius: 6px; z-index: 2;
-        }
-        .badge-faz { background: rgba(0, 255, 170, 0.9); color: #000; }
-        .badge-play { background: rgba(255, 255, 255, 0.9); color: #000; }
-
-        .card-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-sub { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
-
-        /* --- PRODUCT PAGE --- */
-        .prod-nav {
-            position: absolute; top: 0; left: 0; width: 100%; padding: 20px;
-            display: flex; justify-content: space-between; z-index: 10;
-        }
-        .back-btn {
-            width: 40px; height: 40px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            color: #fff; font-size: 20px; border: none; cursor: pointer;
-        }
-
-        .prod-header { height: 300px; position: relative; }
-        .prod-cover { width: 100%; height: 100%; object-fit: cover; mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
+        .card-img { width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover; background: #111; margin-bottom: 10px; }
         
-        .prod-info-card { margin-top: -60px; padding: 0 20px; position: relative; z-index: 5; }
-        .prod-icon {
-            width: 100px; height: 100px; border-radius: 24px; border: 4px solid var(--bg-body);
-            background: #000; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        /* Badges */
+        .source-tag {
+            position: absolute; top: 8px; right: 8px; font-size: 9px; font-weight: 800;
+            padding: 4px 8px; border-radius: 6px; text-transform: uppercase; z-index: 2;
+            backdrop-filter: blur(5px);
         }
+        .src-faz { background: rgba(10, 255, 96, 0.2); color: var(--neon-green); border: 1px solid rgba(10, 255, 96, 0.3); }
+        .src-play { background: rgba(0, 243, 255, 0.2); color: var(--neon-blue); border: 1px solid rgba(0, 243, 255, 0.3); }
+
+        .app-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .app-dev { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+
+        /* 5. FLOATING DOCK (Navigation) */
+        .dock {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(20px);
+            padding: 10px 20px; border-radius: 24px; border: 1px solid var(--glass-border);
+            display: flex; gap: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100;
+        }
+        .dock-item {
+            font-size: 24px; opacity: 0.5; transition: 0.3s; cursor: pointer;
+        }
+        .dock-item.active { opacity: 1; transform: translateY(-5px); text-shadow: 0 0 15px #fff; }
+
+        /* 6. PRODUCT PAGE (Full Screen Overlay) */
+        .page-view {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-dark); z-index: 200; overflow-y: auto;
+            transform: translateY(100%); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+        .page-view.active { transform: translateY(0); }
+
+        .prod-cover { width: 100%; height: 250px; object-fit: cover; mask-image: linear-gradient(to bottom, black, transparent); }
+        .prod-details { padding: 0 24px; position: relative; top: -50px; }
         
-        .prod-meta { margin-top: 15px; }
-        .prod-title { font-size: 28px; font-weight: 800; line-height: 1.2; }
-        .prod-dev { color: var(--text-sec); font-size: 14px; margin-top: 5px; }
-
-        .tags-row { display: flex; gap: 10px; margin-top: 15px; }
-        .tag-pill {
-            padding: 6px 12px; background: #1a1a1a; border-radius: 8px; font-size: 11px; font-weight: 600;
-            display: flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .prod-desc { padding: 25px 20px; color: #ccc; font-size: 14px; line-height: 1.6; }
+        .prod-icon { width: 100px; height: 100px; border-radius: 24px; border: 4px solid var(--bg-dark); background: #000; }
+        .prod-title { font-family: 'Space Grotesk'; font-size: 28px; font-weight: 700; margin-top: 10px; }
         
-        .screens-scroll {
-            display: flex; gap: 15px; padding: 0 20px 30px 20px; overflow-x: auto; scrollbar-width: none;
+        .action-bar {
+            position: fixed; bottom: 0; width: 100%; padding: 20px; background: var(--bg-dark);
+            border-top: 1px solid var(--glass-border); display: flex; gap: 15px;
         }
-        .screen-img {
-            width: 200px; height: 350px; border-radius: 16px; object-fit: cover; background: #1a1a1a;
+        .btn-main {
+            flex: 1; padding: 16px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
         }
+        .btn-neon { background: var(--neon-green); color: #000; box-shadow: 0 0 20px rgba(10, 255, 96, 0.3); }
+        .btn-blue { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); }
 
-        .bottom-action-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%; padding: 20px;
-            background: var(--bg-body); border-top: 1px solid rgba(255,255,255,0.05);
-            z-index: 60; display: flex; gap: 15px; align-items: center;
-        }
-        .action-btn {
-            flex: 1; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 800;
-            border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: 0.2s;
-        }
-        .act-faz { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary-dim); }
-        .act-play { background: var(--secondary); color: #fff; }
-
-        /* --- SEARCH OVERLAY --- */
-        #searchOverlay {
+        /* 7. SEARCH PAGE */
+        .search-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(20px); z-index: 90; padding: 20px;
+            backdrop-filter: blur(20px); z-index: 300; padding: 20px;
             opacity: 0; pointer-events: none; transition: 0.3s;
         }
-        #searchOverlay.visible { opacity: 1; pointer-events: all; }
+        .search-overlay.show { opacity: 1; pointer-events: all; }
+        
         .search-inp {
-            width: 100%; background: #222; border: none; padding: 20px; border-radius: 20px;
+            width: 100%; background: #222; border: 1px solid #333; padding: 18px; border-radius: 16px;
             color: #fff; font-size: 18px; font-family: inherit; margin-bottom: 20px;
         }
 
-        /* --- BROWSER --- */
-        #browserFrame {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200;
-            background: #000; display: none; flex-direction: column;
+        /* 8. HACKER TERMINAL DOWNLOADER */
+        .terminal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000;
+            z-index: 400; padding: 30px; font-family: monospace; display: none; flex-direction: column;
         }
-        .b-nav { padding: 10px 20px; background: #111; display: flex; justify-content: space-between; }
-        iframe { flex: 1; border: none; background: #fff; }
+        .term-line { color: var(--neon-green); margin-bottom: 5px; opacity: 0; animation: typeIn 0.1s forwards; }
+        @keyframes typeIn { to { opacity: 1; } }
 
-        /* --- LOADING OVERLAY --- */
-        #scanOverlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .radar {
-            width: 100px; height: 100px; border: 2px solid #333; border-radius: 50%; position: relative;
-            margin-bottom: 30px; border-top-color: var(--primary); animation: spin 1s infinite linear;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* Skeleton */
+        /* Skeletons */
         .skel { background: #1a1a1a; border-radius: 20px; animation: pulse 1.5s infinite; }
         @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        /* Iframe */
+        #browserFrame { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 500; display: none; flex-direction: column; }
+        iframe { flex: 1; border: none; background: #fff; }
 
     </style>
 </head>
 <body>
 
-    <!-- HOME VIEW -->
-    <div class="view active" id="homeView">
-        <header class="header">
+    <!-- HOME PAGE -->
+    <div id="homePage">
+        <div class="header">
             <div class="brand">
                 FAZ<span>STORE</span>
                 <img src="https://i.supaimg.com/ed405240-9db3-4d6e-8cc1-1f070d18f5d9.png" class="verified-badge">
             </div>
-            <div class="search-trigger" onclick="toggleSearch()">🔍</div>
-        </header>
+            <div class="search-icon" onclick="openSearch()">🔍</div>
+        </div>
 
-        <!-- Hero Slider (Static for now to prevent bugs) -->
         <div class="hero-wrap">
-            <div class="hero-slide active" style="background-image: url('https://image.winudf.com/v2/image1/Y29tLm1vamFuZy5taW5lY3JhZnRwZV9zY3JlZW5fMF8xNjcxOTc2NjAzXzA2NA/screen-0.jpg?fakeurl=1&type=.jpg')">
-                <div class="hero-overlay">
-                    <div class="hero-tag">FEATURED</div>
-                    <div class="hero-title">Minecraft: Pocket Edition</div>
+            <div class="hero-card">
+                <img src="https://image.winudf.com/v2/image1/Y29tLm1vamFuZy5taW5lY3JhZnRwZV9zY3JlZW5fMF8xNjcxOTc2NjAzXzA2NA/screen-0.jpg?fakeurl=1&type=.jpg" class="hero-bg">
+                <div class="hero-content">
+                    <div class="glitch-text">Minecraft PE</div>
+                    <div style="color:#ccc; margin-top:5px;">Unlocked / Mod Menu / God Mode</div>
                 </div>
             </div>
         </div>
 
-        <!-- Categories -->
         <div class="cat-scroll">
-            <div class="cat-chip active" onclick="loadCategory('Popular', this)">For You</div>
-            <div class="cat-chip" onclick="loadCategory('Action', this)">Action</div>
-            <div class="cat-chip" onclick="loadCategory('Racing', this)">Racing</div>
-            <div class="cat-chip" onclick="loadCategory('RPG', this)">RPG</div>
-            <div class="cat-chip" onclick="loadCategory('Tools', this)">Tools</div>
+            <div class="cat-pill active" onclick="loadCategory('Popular', this)">For You</div>
+            <div class="cat-pill" onclick="loadCategory('Action', this)">Action</div>
+            <div class="cat-pill" onclick="loadCategory('Racing', this)">Racing</div>
+            <div class="cat-pill" onclick="loadCategory('Tools', this)">Tools</div>
         </div>
 
-        <div class="section-title" id="gridTitle">Recommended Apps</div>
-        <div class="grid" id="mainGrid">
-            <!-- Items injected here -->
-        </div>
+        <div class="grid-title" id="gridTitle">Recommended</div>
+        <div class="grid" id="mainGrid"></div>
     </div>
 
-    <!-- PRODUCT VIEW -->
-    <div class="view hidden" id="productView">
-        <div class="prod-nav">
-            <button class="back-btn" onclick="goBack()">←</button>
-        </div>
+    <!-- DOCK NAVIGATION -->
+    <div class="dock">
+        <div class="dock-item active" onclick="goHome()">🏠</div>
+        <div class="dock-item" onclick="openSearch()">🔍</div>
+    </div>
 
-        <div class="prod-header">
-            <img id="pCover" class="prod-cover" src="">
+    <!-- PRODUCT PAGE OVERLAY -->
+    <div class="page-view" id="prodPage">
+        <div style="position: absolute; top:20px; left:20px; z-index:10;">
+            <button onclick="closeProd()" style="width:40px; height:40px; border-radius:50%; border:none; background:rgba(0,0,0,0.5); color:#fff; font-size:20px;">✕</button>
         </div>
-
-        <div class="prod-info-card">
+        <img id="pCover" class="prod-cover" src="">
+        <div class="prod-details">
             <img id="pIcon" class="prod-icon" src="">
-            <div class="prod-meta">
-                <div class="prod-title" id="pTitle">App Name</div>
-                <div class="prod-dev" id="pDev">Developer Name</div>
-                <div class="tags-row">
-                    <div class="tag-pill" id="pSourcePill">FAZ STORE</div>
-                    <div class="tag-pill">⭐ 4.8</div>
-                </div>
+            <div class="prod-title" id="pTitle">App Name</div>
+            <div style="color:#888; margin-top:5px;" id="pDev">Developer</div>
+            <div style="margin-top:20px; font-size:14px; line-height:1.6; color:#ccc;">
+                Securely download the latest version. <br>
+                <span style="color:var(--neon-green)">✓ Virus Scan Passed</span>
             </div>
         </div>
-
-        <div class="prod-desc">
-            <h3 style="color:#fff; margin-bottom:10px;">About this app</h3>
-            Get the latest version directly from our servers. 
-            <br><br>• Version: Latest<br>• Secure: Yes
-        </div>
-
-        <div class="section-title">Preview</div>
-        <div class="screens-scroll">
-            <div class="screen-img"></div>
-            <div class="screen-img"></div>
-        </div>
-
-        <div class="bottom-action-bar">
-            <button id="pActionBtn" class="action-btn act-faz" onclick="startDownload()">Download</button>
+        <div class="action-bar">
+            <button id="pBtn" class="btn-main btn-neon" onclick="startDownload()">Download</button>
         </div>
     </div>
 
     <!-- SEARCH OVERLAY -->
-    <div id="searchOverlay">
-        <div style="display:flex; justify-content:flex-end;">
-            <button class="back-btn" onclick="toggleSearch()">✕</button>
+    <div class="search-overlay" id="searchUI">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h2 style="font-family:'Space Grotesk'; margin:0;">Search</h2>
+            <button onclick="closeSearch()" style="background:none; border:none; color:#fff; font-size:24px;">✕</button>
         </div>
-        <br>
-        <input type="text" class="search-inp" id="liveSearch" placeholder="Search apps (e.g. WhatsApp)..." autofocus>
+        <input type="text" class="search-inp" id="searchInp" placeholder="Type app name..." autofocus>
         <div class="grid" id="searchGrid" style="padding:0;"></div>
     </div>
 
-    <!-- SCANNING OVERLAY -->
-    <div id="scanOverlay">
-        <div class="radar"></div>
-        <div class="scan-text" id="scanStatus" style="color:var(--primary)">Connecting...</div>
+    <!-- TERMINAL DOWNLOADER -->
+    <div class="terminal-overlay" id="terminal">
+        <div style="color:#0f0; margin-bottom:20px; font-size:16px;">FAZ_SECURE_GATEWAY_V2.0</div>
+        <div id="termLogs"></div>
     </div>
 
     <!-- BROWSER -->
     <div id="browserFrame">
-        <div class="b-nav">
-            <span style="color:var(--primary); font-weight:bold;">🔒 Secure Gateway</span>
-            <button style="color:#fff; background:none; border:none; font-size:18px;" onclick="closeBrowser()">Done</button>
+        <div style="padding:15px; background:#111; display:flex; justify-content:space-between;">
+            <span style="color:var(--neon-green)">🔒 Secure Browser</span>
+            <button onclick="closeBrowser()" style="color:#fff; background:none; border:none;">Close</button>
         </div>
         <iframe id="webContent" src=""></iframe>
     </div>
@@ -317,50 +288,20 @@
         const API_PLAY = "https://api.xyro.site/apk/playstore-search?query=";
         
         let currentApp = null;
-        // List of specific categories to Shuffle (Home Page)
-        const shuffleCategories = ["Popular", "Action", "Racing", "RPG", "Tools", "Strategy", "Simulation"];
+        const shuffleCategories = ["Popular", "Action", "Racing", "Tools"];
 
-        window.onload = () => {
-            loadData("Popular");
-        };
+        window.onload = () => loadData("Popular");
 
         // --- NAVIGATION ---
-        function goBack() {
-            document.getElementById("productView").classList.add("hidden");
-            document.getElementById("productView").classList.remove("active");
-            document.getElementById("homeView").classList.remove("hidden");
+        function goHome() {
+            closeProd();
+            closeSearch();
         }
 
-        function openProduct(app) {
-            currentApp = app;
-            document.getElementById("pCover").src = app.img;
-            document.getElementById("pIcon").src = app.img;
-            document.getElementById("pTitle").innerText = app.title;
-            document.getElementById("pDev").innerText = app.dev;
-            
-            const btn = document.getElementById("pActionBtn");
-            const pill = document.getElementById("pSourcePill");
-
-            if(app.src === 'PLAY') {
-                btn.className = "action-btn act-play";
-                btn.innerText = "Get from Play Store";
-                pill.innerText = "OFFICIAL";
-                pill.style.color = "var(--secondary)";
-            } else {
-                btn.className = "action-btn act-faz";
-                btn.innerText = "Download (Faz Store)";
-                pill.innerText = "MOD UNLOCKED";
-                pill.style.color = "var(--primary)";
-            }
-
-            document.getElementById("productView").classList.remove("hidden");
-            document.getElementById("productView").classList.add("active");
-        }
-
-        // --- DATA LOGIC (FIXED SEARCH) ---
+        // --- DATA LOGIC ---
         async function loadData(query, targetGrid = "mainGrid") {
             const grid = document.getElementById(targetGrid);
-            grid.innerHTML = Array(6).fill('<div class="card" style="height:200px; background:#1a1a1a;"></div>').join('');
+            grid.innerHTML = Array(6).fill('<div class="card" style="height:180px; background:#111;"></div>').join('');
 
             try {
                 const [an1, play] = await Promise.allSettled([
@@ -369,39 +310,24 @@
                 ]);
 
                 let apps = [];
-                // Play Store Parsing
                 if(play.status === "fulfilled") {
                     let d = play.value;
                     let list = (d.result && Array.isArray(d.result)) ? d.result : (Array.isArray(d) ? d : []);
                     list.forEach(i => apps.push({ src: 'PLAY', title: i.name||"App", img: i.img||"", dev: i.developer||"Google Play", link: i.link }));
                 }
-                // Faz Store Parsing
                 if(an1.status === "fulfilled" && an1.value.status) {
                     (an1.value.result || []).forEach(i => apps.push({ src: 'FAZ', title: i.title||i.name||"MOD", img: i.image||i.icon||"", dev: i.developer||"Faz Store", link: i.link }));
                 }
 
-                // --- THE CRITICAL FIX ---
-                // Agar query Home Page wali categories me se hai, tabhi shuffle karo
+                // FIX: Only shuffle if browsing categories. If Searching, Sort by relevance.
                 if (shuffleCategories.includes(query)) {
                     apps.sort(() => Math.random() - 0.5);
                 } else {
-                    // Search Query Logic: Sort by Relevance
                     const lowerQ = query.toLowerCase();
                     apps.sort((a, b) => {
-                        const nameA = a.title.toLowerCase();
-                        const nameB = b.title.toLowerCase();
-                        
-                        // Exact match priority
-                        if (nameA === lowerQ) return -1;
-                        if (nameB === lowerQ) return 1;
-
-                        // Starts with query priority
-                        const startsA = nameA.startsWith(lowerQ);
-                        const startsB = nameB.startsWith(lowerQ);
-                        if (startsA && !startsB) return -1;
-                        if (!startsA && startsB) return 1;
-
-                        return 0; 
+                        if (a.title.toLowerCase() === lowerQ) return -1;
+                        if (b.title.toLowerCase() === lowerQ) return 1;
+                        return 0;
                     });
                 }
 
@@ -416,59 +342,85 @@
                 const div = document.createElement("div");
                 div.className = "card";
                 div.innerHTML = `
-                    <div class="badge ${isPlay?'badge-play':'badge-faz'}">${isPlay?'OFFICIAL':'FAZ MOD'}</div>
+                    <div class="source-tag ${isPlay?'src-play':'src-faz'}">${isPlay?'Play Store':'Faz Store'}</div>
                     <img src="${app.img}" class="card-img" onerror="this.src='https://via.placeholder.com/150'">
-                    <div class="card-title">${app.title}</div>
-                    <div class="card-sub">${app.dev}</div>
+                    <div class="app-name">${app.title}</div>
+                    <div class="app-dev">${app.dev}</div>
                 `;
-                div.onclick = () => openProduct(app);
+                div.onclick = () => openProd(app);
                 container.appendChild(div);
             });
         }
 
         function loadCategory(cat, el) {
-            document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('.cat-pill').forEach(c => c.classList.remove('active'));
             el.classList.add('active');
             document.getElementById("gridTitle").innerText = cat;
             loadData(cat);
         }
 
-        // --- SEARCH ---
-        function toggleSearch() {
-            const el = document.getElementById("searchOverlay");
-            el.classList.toggle("visible");
-            if(el.classList.contains("visible")) document.getElementById("liveSearch").focus();
+        // --- PRODUCT PAGE ---
+        function openProd(app) {
+            currentApp = app;
+            document.getElementById("pCover").src = app.img;
+            document.getElementById("pIcon").src = app.img;
+            document.getElementById("pTitle").innerText = app.title;
+            document.getElementById("pDev").innerText = app.dev;
+            
+            const btn = document.getElementById("pBtn");
+            if(app.src === 'PLAY') {
+                btn.className = "btn-main btn-blue";
+                btn.innerText = "Open in Play Store";
+            } else {
+                btn.className = "btn-main btn-neon";
+                btn.innerText = "Download from Faz Store";
+            }
+            document.getElementById("prodPage").classList.add("active");
         }
+        function closeProd() { document.getElementById("prodPage").classList.remove("active"); }
 
-        let debounceTimer;
-        document.getElementById("liveSearch").addEventListener("input", (e) => {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                const q = e.target.value.trim();
-                if(q.length > 2) loadData(q, "searchGrid");
+        // --- SEARCH ---
+        function openSearch() { document.getElementById("searchUI").classList.add("show"); document.getElementById("searchInp").focus(); }
+        function closeSearch() { document.getElementById("searchUI").classList.remove("show"); document.getElementById("searchInp").value = ""; document.getElementById("searchGrid").innerHTML = ""; }
+        
+        let debounce;
+        document.getElementById("searchInp").addEventListener("input", (e) => {
+            clearTimeout(debounce);
+            debounce = setTimeout(() => {
+                if(e.target.value.length > 2) loadData(e.target.value, "searchGrid");
             }, 600);
         });
 
-        // --- DOWNLOAD ---
+        // --- DOWNLOAD SIMULATION ---
         function startDownload() {
             if(currentApp.src === 'PLAY') {
                 window.open(currentApp.link, '_blank');
             } else {
-                const scan = document.getElementById("scanOverlay");
-                const txt = document.getElementById("scanStatus");
-                scan.style.display = "flex";
+                const term = document.getElementById("terminal");
+                const logs = document.getElementById("termLogs");
+                term.style.display = "flex";
+                logs.innerHTML = "";
                 
-                let steps = ["Connecting...", "Verifying File...", "Starting Download..."];
+                const lines = [
+                    "Connecting to server...", 
+                    "Verifying package integrity...", 
+                    "Bypassing region restrictions...", 
+                    "Download link generated."
+                ];
+                
                 let i = 0;
                 let int = setInterval(() => {
-                    if(i < steps.length) txt.innerText = steps[i];
-                    else {
+                    if(i < lines.length) {
+                        logs.innerHTML += `<div class="term-line">> ${lines[i]}</div>`;
+                        i++;
+                    } else {
                         clearInterval(int);
-                        scan.style.display = "none";
-                        openBrowser(currentApp.link);
+                        setTimeout(() => {
+                            term.style.display = "none";
+                            openBrowser(currentApp.link);
+                        }, 800);
                     }
-                    i++;
-                }, 800);
+                }, 600);
             }
         }
 
