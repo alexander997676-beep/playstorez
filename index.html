@@ -3,305 +3,447 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAZ STORE - CyberOS</title>
-    <!-- Tech Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>FAZ STORE - Singularity</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --neon-green: #0aff60;
-            --neon-blue: #00f3ff;
-            --glass-bg: rgba(255, 255, 255, 0.03);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --bg-dark: #050505;
-            --text-main: #ffffff;
-            --text-dim: #888888;
+            --primary: #00ff9d;       /* Cyber Green */
+            --secondary: #00d2ff;     /* Holo Blue */
+            --bg: #050505;            /* Void */
+            --glass: rgba(20, 20, 25, 0.6);
+            --glass-high: rgba(255, 255, 255, 0.1);
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #ffffff;
+            --ease: cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
 
         body {
             margin: 0; padding: 0;
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            overflow-x: hidden;
-            height: 100vh;
-            /* Animated Background */
-            background-image: 
-                radial-gradient(circle at 15% 50%, rgba(10, 255, 96, 0.08), transparent 25%),
-                radial-gradient(circle at 85% 30%, rgba(0, 243, 255, 0.08), transparent 25%);
-            animation: bgPulse 10s infinite alternate;
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            overflow: hidden; /* App style */
+            height: 100vh; width: 100vw;
         }
 
-        @keyframes bgPulse { 0% { background-size: 100% 100%; } 100% { background-size: 110% 110%; } }
+        /* --- NEURAL BACKGROUND --- */
+        canvas#neural {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
+        }
 
-        /* --- UI COMPONENTS --- */
+        /* --- SCROLLABLE AREA --- */
+        #appContainer {
+            height: 100%; overflow-y: auto; overflow-x: hidden;
+            padding-bottom: 120px; position: relative; z-index: 1;
+            scroll-behavior: smooth;
+        }
+
+        /* --- DYNAMIC ISLAND (Top Bar) --- */
+        .top-bar {
+            position: fixed; top: 10px; left: 0; width: 100%; z-index: 100;
+            display: flex; justify-content: center; pointer-events: none;
+        }
         
-        /* 1. HEADER */
-        .header {
-            padding: 20px; display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 50;
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-            background: rgba(5,5,5,0.7);
+        .island {
+            background: #000; border-radius: 40px; height: 40px; min-width: 120px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 5px; pointer-events: auto; transition: 0.4s var(--ease);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 1px solid #222;
+            overflow: hidden;
+        }
+        
+        /* Island States */
+        .island.expanded { width: 340px; height: 60px; padding: 0 15px; border-color: var(--primary); }
+        .island.search-mode { width: 90%; height: 50px; border-color: var(--secondary); }
+
+        /* Island Content */
+        .island-logo { 
+            display: flex; align-items: center; gap: 8px; padding-left: 10px;
+            font-weight: 800; letter-spacing: -0.5px; font-size: 14px;
+        }
+        .island-logo span { color: var(--primary); }
+        .island-search-icon {
+            width: 30px; height: 30px; background: #222; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
         }
 
-        .brand {
-            display: flex; align-items: center; gap: 10px;
-            font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700;
+        /* Island Search Input */
+        .island-inp-wrap { display: none; width: 100%; height: 100%; align-items: center; gap: 10px; }
+        .island.search-mode .island-inp-wrap { display: flex; }
+        .island.search-mode .island-logo, .island.search-mode .island-search-icon { display: none; }
+        
+        .island-input {
+            flex: 1; background: transparent; border: none; color: #fff; font-size: 16px; font-family: inherit;
         }
-        .brand span { color: var(--neon-green); text-shadow: 0 0 10px rgba(10,255,96,0.4); }
-        .verified-badge { width: 22px; height: 22px; filter: drop-shadow(0 0 5px var(--neon-blue)); }
+        .island-close { font-size: 20px; cursor: pointer; color: #666; }
 
-        .search-icon {
-            width: 44px; height: 44px; border-radius: 12px;
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
+        /* Island Download Status */
+        .island-status { display: none; align-items: center; gap: 15px; width: 100%; justify-content: space-between; }
+        .island.expanded .island-status { display: flex; }
+        .island.expanded .island-logo, .island.expanded .island-search-icon { display: none; }
+        
+        .status-icon { width: 30px; height: 30px; border-radius: 8px; background: #222; object-fit: cover; }
+        .status-text { font-size: 12px; font-weight: 600; display: flex; flex-direction: column; }
+        .status-bar { width: 100px; height: 4px; background: #333; border-radius: 2px; overflow: hidden; }
+        .status-fill { height: 100%; background: var(--primary); width: 0%; transition: width 0.1s linear; }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            margin-top: 70px; padding: 0 20px; margin-bottom: 30px;
+        }
+        .hero-card {
+            height: 220px; border-radius: 30px; position: relative; overflow: hidden;
+            box-shadow: 0 20px 50px -20px rgba(0,255,157,0.2); border: 1px solid var(--border);
             cursor: pointer; transition: 0.3s;
         }
-        .search-icon:hover { background: var(--neon-green); color: #000; box-shadow: 0 0 15px var(--neon-green); }
-
-        /* 2. CATEGORIES (Pills) */
-        .cat-scroll {
-            display: flex; gap: 10px; padding: 0 20px; overflow-x: auto; margin-bottom: 20px;
-            scrollbar-width: none;
-        }
-        .cat-pill {
-            padding: 8px 18px; border-radius: 50px; background: var(--glass-bg);
-            border: 1px solid var(--glass-border); color: var(--text-dim); font-size: 13px; font-weight: 600;
-            white-space: nowrap; transition: 0.3s; cursor: pointer;
-        }
-        .cat-pill.active {
-            background: rgba(10, 255, 96, 0.1); border-color: var(--neon-green); color: var(--neon-green);
-        }
-
-        /* 3. HERO CARD (Holographic) */
-        .hero-wrap { padding: 0 20px; margin-bottom: 30px; }
-        .hero-card {
-            height: 200px; border-radius: 24px; position: relative; overflow: hidden;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-        }
-        .hero-bg {
-            width: 100%; height: 100%; object-fit: cover; opacity: 0.7;
-            transition: transform 5s ease;
-        }
+        .hero-card:active { transform: scale(0.98); }
+        .hero-bg { width: 100%; height: 100%; object-fit: cover; transition: 5s; }
         .hero-card:hover .hero-bg { transform: scale(1.1); }
-        .hero-content {
-            position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px;
-            background: linear-gradient(to top, #000, transparent);
-        }
-        .glitch-text {
-            font-family: 'Space Grotesk'; font-size: 26px; font-weight: 800; color: #fff;
-            text-shadow: 2px 2px var(--neon-blue);
-        }
-
-        /* 4. GRID LAYOUT */
-        .grid-title { padding: 0 20px; font-family: 'Space Grotesk'; font-size: 18px; margin-bottom: 15px; color: var(--text-dim); }
         
+        .hero-overlay {
+            position: absolute; inset: 0; background: linear-gradient(to top, #050505, transparent);
+            padding: 25px; display: flex; flex-direction: column; justify-content: flex-end;
+        }
+        .hero-badge {
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); color: #fff;
+            padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; 
+            width: fit-content; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.1);
+        }
+        .hero-title { font-size: 32px; font-weight: 800; line-height: 1; text-shadow: 0 5px 20px rgba(0,0,0,0.8); }
+
+        /* --- CATEGORIES --- */
+        .cats {
+            display: flex; gap: 12px; padding: 0 20px 20px 20px; overflow-x: auto; scrollbar-width: none;
+        }
+        .cat {
+            padding: 10px 20px; background: var(--glass); border-radius: 14px; border: 1px solid var(--border);
+            font-size: 13px; font-weight: 600; color: #aaa; white-space: nowrap; transition: 0.3s; cursor: pointer;
+        }
+        .cat.active { background: #fff; color: #000; box-shadow: 0 0 20px rgba(255,255,255,0.2); border-color: #fff; }
+
+        /* --- GRID --- */
+        .section-head { padding: 0 20px; font-size: 18px; font-weight: 800; margin-bottom: 15px; color: #fff; }
         .grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 15px; padding: 0 20px 100px 20px;
+            gap: 15px; padding: 0 20px;
         }
 
         .card {
-            background: var(--glass-bg); border: 1px solid var(--glass-border);
-            border-radius: 20px; padding: 12px; position: relative;
-            transition: 0.3s; cursor: pointer; overflow: hidden;
+            background: var(--glass); border-radius: 24px; padding: 12px; border: 1px solid var(--border);
+            position: relative; transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); cursor: pointer;
         }
-        .card:hover { transform: translateY(-5px); border-color: rgba(255,255,255,0.2); }
-        .card::before {
-            content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-            background: linear-gradient(to right, transparent, rgba(255,255,255,0.1), transparent);
-            transform: skewX(-25deg); transition: 0.5s;
-        }
-        .card:hover::before { left: 150%; }
+        .card:hover { transform: translateY(-5px); background: var(--glass-high); border-color: rgba(255,255,255,0.2); }
+        .card:active { transform: scale(0.95); }
 
-        .card-img { width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover; background: #111; margin-bottom: 10px; }
+        .card-img {
+            width: 100%; aspect-ratio: 1; border-radius: 18px; object-fit: cover; background: #111;
+            margin-bottom: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
         
-        /* Badges */
-        .source-tag {
-            position: absolute; top: 8px; right: 8px; font-size: 9px; font-weight: 800;
-            padding: 4px 8px; border-radius: 6px; text-transform: uppercase; z-index: 2;
-            backdrop-filter: blur(5px);
+        .card-tag {
+            position: absolute; top: 12px; right: 12px; font-size: 9px; font-weight: 800;
+            padding: 4px 8px; border-radius: 6px; backdrop-filter: blur(5px);
         }
-        .src-faz { background: rgba(10, 255, 96, 0.2); color: var(--neon-green); border: 1px solid rgba(10, 255, 96, 0.3); }
-        .src-play { background: rgba(0, 243, 255, 0.2); color: var(--neon-blue); border: 1px solid rgba(0, 243, 255, 0.3); }
+        .tag-faz { background: rgba(0, 255, 157, 0.2); color: var(--primary); border: 1px solid var(--primary); }
+        .tag-play { background: rgba(0, 210, 255, 0.2); color: var(--secondary); border: 1px solid var(--secondary); }
 
-        .app-name { font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .app-dev { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+        .card-title { font-weight: 700; font-size: 15px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-dev { font-size: 12px; color: #888; }
 
-        /* 5. FLOATING DOCK (Navigation) */
+        /* --- PROFILE / LEVEL --- */
+        .profile-bar {
+            padding: 20px; margin-top: 10px; background: rgba(255,255,255,0.03); margin: 0 20px 30px 20px;
+            border-radius: 20px; display: flex; align-items: center; gap: 15px; border: 1px solid var(--border);
+        }
+        .avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; font-weight: 800; color: #000; font-size: 20px; }
+        .user-info h3 { margin: 0; font-size: 16px; }
+        .user-info p { margin: 2px 0 0 0; font-size: 12px; color: #888; }
+        .xp-bar { width: 100px; height: 4px; background: #333; border-radius: 2px; margin-top: 5px; }
+        .xp-fill { height: 100%; background: var(--primary); width: 40%; }
+
+        /* --- PRODUCT PAGE (Full Screen Zoom) --- */
+        .prod-page {
+            position: fixed; inset: 0; background: #050505; z-index: 200;
+            opacity: 0; pointer-events: none; transform: scale(0.9);
+            transition: 0.4s var(--ease); overflow-y: auto;
+        }
+        .prod-page.active { opacity: 1; pointer-events: all; transform: scale(1); }
+
+        /* Dynamic Glow Background */
+        .prod-glow {
+            position: fixed; top: -20%; left: -20%; width: 140%; height: 80%;
+            background: radial-gradient(circle, var(--accent-color, #444), transparent 70%);
+            opacity: 0.3; pointer-events: none; z-index: -1; transition: background 0.5s;
+        }
+
+        .prod-nav { padding: 20px; position: absolute; top: 0; width: 100%; z-index: 10; }
+        .back-circle {
+            width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 20px; cursor: pointer; border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .prod-header {
+            margin-top: 80px; padding: 0 25px; display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .prod-icon {
+            width: 140px; height: 140px; border-radius: 35px; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            margin-bottom: 25px; object-fit: cover;
+        }
+        .prod-title { font-size: 32px; font-weight: 900; line-height: 1.1; margin-bottom: 5px; }
+        .prod-dev { color: #888; font-size: 15px; margin-bottom: 20px; }
+
+        .prod-actions { width: 100%; padding: 0 25px; margin-top: 20px; }
+        .dl-btn {
+            width: 100%; padding: 18px; border-radius: 20px; border: none; font-size: 16px; font-weight: 800;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.2s;
+        }
+        .dl-faz { background: #fff; color: #000; box-shadow: 0 0 30px rgba(255,255,255,0.2); }
+        .dl-play { background: #1a1a1a; color: var(--secondary); border: 1px solid #333; }
+
+        .prod-info { padding: 30px 25px; }
+        .desc { font-size: 15px; line-height: 1.6; color: #ccc; }
+
+        /* --- DOCK --- */
+        .dock-wrap { position: fixed; bottom: 20px; width: 100%; display: flex; justify-content: center; z-index: 90; }
         .dock {
-            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-            background: rgba(10, 10, 10, 0.8); backdrop-filter: blur(20px);
-            padding: 10px 20px; border-radius: 24px; border: 1px solid var(--glass-border);
-            display: flex; gap: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 100;
+            background: rgba(20, 20, 25, 0.8); backdrop-filter: blur(20px);
+            padding: 12px 25px; border-radius: 30px; border: 1px solid var(--border);
+            display: flex; gap: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
-        .dock-item {
-            font-size: 24px; opacity: 0.5; transition: 0.3s; cursor: pointer;
-        }
+        .dock-item { font-size: 24px; opacity: 0.5; transition: 0.2s; cursor: pointer; }
         .dock-item.active { opacity: 1; transform: translateY(-5px); text-shadow: 0 0 15px #fff; }
 
-        /* 6. PRODUCT PAGE (Full Screen Overlay) */
-        .page-view {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--bg-dark); z-index: 200; overflow-y: auto;
-            transform: translateY(100%); transition: 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        /* --- SEARCH RESULTS --- */
+        .search-results {
+            position: fixed; top: 70px; left: 0; width: 100%; height: calc(100% - 70px);
+            background: rgba(5,5,5,0.95); backdrop-filter: blur(10px); z-index: 90;
+            padding: 20px; display: none; overflow-y: auto;
         }
-        .page-view.active { transform: translateY(0); }
+        .search-results.active { display: block; animation: fadeIn 0.3s; }
 
-        .prod-cover { width: 100%; height: 250px; object-fit: cover; mask-image: linear-gradient(to bottom, black, transparent); }
-        .prod-details { padding: 0 24px; position: relative; top: -50px; }
-        
-        .prod-icon { width: 100px; height: 100px; border-radius: 24px; border: 4px solid var(--bg-dark); background: #000; }
-        .prod-title { font-family: 'Space Grotesk'; font-size: 28px; font-weight: 700; margin-top: 10px; }
-        
-        .action-bar {
-            position: fixed; bottom: 0; width: 100%; padding: 20px; background: var(--bg-dark);
-            border-top: 1px solid var(--glass-border); display: flex; gap: 15px;
-        }
-        .btn-main {
-            flex: 1; padding: 16px; border-radius: 16px; border: none; font-size: 16px; font-weight: 700;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .btn-neon { background: var(--neon-green); color: #000; box-shadow: 0 0 20px rgba(10, 255, 96, 0.3); }
-        .btn-blue { background: var(--neon-blue); color: #000; box-shadow: 0 0 20px rgba(0, 243, 255, 0.3); }
-
-        /* 7. SEARCH PAGE */
-        .search-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(20px); z-index: 300; padding: 20px;
-            opacity: 0; pointer-events: none; transition: 0.3s;
-        }
-        .search-overlay.show { opacity: 1; pointer-events: all; }
-        
-        .search-inp {
-            width: 100%; background: #222; border: 1px solid #333; padding: 18px; border-radius: 16px;
-            color: #fff; font-size: 18px; font-family: inherit; margin-bottom: 20px;
-        }
-
-        /* 8. HACKER TERMINAL DOWNLOADER */
-        .terminal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000;
-            z-index: 400; padding: 30px; font-family: monospace; display: none; flex-direction: column;
-        }
-        .term-line { color: var(--neon-green); margin-bottom: 5px; opacity: 0; animation: typeIn 0.1s forwards; }
-        @keyframes typeIn { to { opacity: 1; } }
-
-        /* Skeletons */
-        .skel { background: #1a1a1a; border-radius: 20px; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-
-        /* Iframe */
-        #browserFrame { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 500; display: none; flex-direction: column; }
+        /* Browser */
+        #browser { position: fixed; inset: 0; background: #000; z-index: 500; display: none; flex-direction: column; }
         iframe { flex: 1; border: none; background: #fff; }
+
+        /* Skeleton */
+        .skel { background: rgba(255,255,255,0.05); border-radius: 24px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
     </style>
 </head>
 <body>
 
-    <!-- HOME PAGE -->
-    <div id="homePage">
-        <div class="header">
-            <div class="brand">
-                FAZ<span>STORE</span>
-                <img src="https://i.supaimg.com/ed405240-9db3-4d6e-8cc1-1f070d18f5d9.png" class="verified-badge">
-            </div>
-            <div class="search-icon" onclick="openSearch()">🔍</div>
-        </div>
+    <!-- NEURAL BACKGROUND -->
+    <canvas id="neural"></canvas>
 
-        <div class="hero-wrap">
-            <div class="hero-card">
+    <!-- TOP BAR / DYNAMIC ISLAND -->
+    <div class="top-bar">
+        <div class="island" id="island">
+            <!-- Idle State -->
+            <div class="island-logo">FAZ<span>STORE</span> <img src="https://i.supaimg.com/ed405240-9db3-4d6e-8cc1-1f070d18f5d9.png" style="width:18px;"></div>
+            <div class="island-search-icon" onclick="activateSearch()">🔍</div>
+
+            <!-- Search Mode -->
+            <div class="island-inp-wrap">
+                <span style="font-size:14px; color:#666;">🔍</span>
+                <input type="text" class="island-input" id="searchInp" placeholder="Search apps...">
+                <div class="island-close" onclick="deactivateSearch()">✕</div>
+            </div>
+
+            <!-- Status Mode -->
+            <div class="island-status">
+                <img id="islIcon" class="status-icon" src="">
+                <div class="status-text">
+                    <span id="islStatus">Downloading...</span>
+                    <div class="status-bar"><div class="status-fill" id="islFill"></div></div>
+                </div>
+                <div style="font-size:14px;">⬇</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN SCROLL -->
+    <div id="appContainer">
+        
+        <!-- Hero -->
+        <div class="hero">
+            <div class="hero-card" onclick="loadData('Popular')">
                 <img src="https://image.winudf.com/v2/image1/Y29tLm1vamFuZy5taW5lY3JhZnRwZV9zY3JlZW5fMF8xNjcxOTc2NjAzXzA2NA/screen-0.jpg?fakeurl=1&type=.jpg" class="hero-bg">
-                <div class="hero-content">
-                    <div class="glitch-text">Minecraft PE</div>
-                    <div style="color:#ccc; margin-top:5px;">Unlocked / Mod Menu / God Mode</div>
+                <div class="hero-overlay">
+                    <div class="hero-badge">FEATURED</div>
+                    <div class="hero-title">Minecraft: PE</div>
                 </div>
             </div>
         </div>
 
-        <div class="cat-scroll">
-            <div class="cat-pill active" onclick="loadCategory('Popular', this)">For You</div>
-            <div class="cat-pill" onclick="loadCategory('Action', this)">Action</div>
-            <div class="cat-pill" onclick="loadCategory('Racing', this)">Racing</div>
-            <div class="cat-pill" onclick="loadCategory('Tools', this)">Tools</div>
-        </div>
-
-        <div class="grid-title" id="gridTitle">Recommended</div>
-        <div class="grid" id="mainGrid"></div>
-    </div>
-
-    <!-- DOCK NAVIGATION -->
-    <div class="dock">
-        <div class="dock-item active" onclick="goHome()">🏠</div>
-        <div class="dock-item" onclick="openSearch()">🔍</div>
-    </div>
-
-    <!-- PRODUCT PAGE OVERLAY -->
-    <div class="page-view" id="prodPage">
-        <div style="position: absolute; top:20px; left:20px; z-index:10;">
-            <button onclick="closeProd()" style="width:40px; height:40px; border-radius:50%; border:none; background:rgba(0,0,0,0.5); color:#fff; font-size:20px;">✕</button>
-        </div>
-        <img id="pCover" class="prod-cover" src="">
-        <div class="prod-details">
-            <img id="pIcon" class="prod-icon" src="">
-            <div class="prod-title" id="pTitle">App Name</div>
-            <div style="color:#888; margin-top:5px;" id="pDev">Developer</div>
-            <div style="margin-top:20px; font-size:14px; line-height:1.6; color:#ccc;">
-                Securely download the latest version. <br>
-                <span style="color:var(--neon-green)">✓ Virus Scan Passed</span>
+        <!-- Profile Bar -->
+        <div class="profile-bar">
+            <div class="avatar">U</div>
+            <div class="user-info">
+                <h3>User Level 1</h3>
+                <div class="xp-bar"><div class="xp-fill"></div></div>
+                <p>0/100 XP to Level 2</p>
             </div>
         </div>
-        <div class="action-bar">
-            <button id="pBtn" class="btn-main btn-neon" onclick="startDownload()">Download</button>
+
+        <!-- Categories -->
+        <div class="cats">
+            <div class="cat active" onclick="loadTab('Popular', this)">All</div>
+            <div class="cat" onclick="loadTab('Action', this)">Games</div>
+            <div class="cat" onclick="loadTab('Tools', this)">Apps</div>
+            <div class="cat" onclick="loadTab('Social', this)">Social</div>
+            <div class="cat" onclick="loadTab('Racing', this)">Racing</div>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="section-head">Discover</div>
+        <div class="grid" id="mainGrid"></div>
+        
+        <!-- Search Results View -->
+        <div class="search-results" id="searchRes">
+            <div class="grid" id="searchGrid"></div>
+        </div>
+
+    </div>
+
+    <!-- DOCK -->
+    <div class="dock-wrap">
+        <div class="dock">
+            <div class="dock-item active" onclick="resetApp()">🏠</div>
+            <div class="dock-item" onclick="activateSearch()">🔍</div>
+            <div class="dock-item" onclick="alert('Profile Locked')">👤</div>
         </div>
     </div>
 
-    <!-- SEARCH OVERLAY -->
-    <div class="search-overlay" id="searchUI">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h2 style="font-family:'Space Grotesk'; margin:0;">Search</h2>
-            <button onclick="closeSearch()" style="background:none; border:none; color:#fff; font-size:24px;">✕</button>
+    <!-- PRODUCT PAGE -->
+    <div class="prod-page" id="prodView">
+        <div class="prod-glow" id="prodGlow"></div>
+        <div class="prod-nav">
+            <div class="back-circle" onclick="closeProd()">✕</div>
         </div>
-        <input type="text" class="search-inp" id="searchInp" placeholder="Type app name..." autofocus>
-        <div class="grid" id="searchGrid" style="padding:0;"></div>
-    </div>
+        <div class="prod-header">
+            <img id="pIcon" class="prod-icon" src="">
+            <div class="prod-title" id="pTitle">App Name</div>
+            <div class="prod-dev" id="pDev">Developer</div>
+            <div style="display:flex; gap:10px;">
+                <div class="hero-badge" id="pSrcTag" style="margin:0;">FAZ STORE</div>
+                <div class="hero-badge" style="background:rgba(255,255,255,0.1); margin:0;">4.9 ★</div>
+            </div>
+        </div>
 
-    <!-- TERMINAL DOWNLOADER -->
-    <div class="terminal-overlay" id="terminal">
-        <div style="color:#0f0; margin-bottom:20px; font-size:16px;">FAZ_SECURE_GATEWAY_V2.0</div>
-        <div id="termLogs"></div>
+        <div class="prod-actions">
+            <button id="pBtn" class="dl-btn dl-faz" onclick="startDownload()">Download</button>
+        </div>
+
+        <div class="prod-info">
+            <h3 style="margin-bottom:10px;">Description</h3>
+            <p class="desc">
+                Verified application package. 
+                Optimized for your device architecture. 
+                Experience premium features unlocked.
+                <br><br>
+                Security Scan: Passed ✓
+            </p>
+        </div>
+        <div style="height:100px;"></div>
     </div>
 
     <!-- BROWSER -->
-    <div id="browserFrame">
-        <div style="padding:15px; background:#111; display:flex; justify-content:space-between;">
-            <span style="color:var(--neon-green)">🔒 Secure Browser</span>
-            <button onclick="closeBrowser()" style="color:#fff; background:none; border:none;">Close</button>
+    <div id="browser">
+        <div style="padding:15px; background:#000; display:flex; justify-content:space-between; border-bottom:1px solid #222;">
+            <span style="color:var(--primary)">🔒 Secure Connection</span>
+            <button onclick="closeBrowser()" style="color:#fff; background:none; border:none;">Done</button>
         </div>
-        <iframe id="webContent" src=""></iframe>
+        <iframe id="webFrame" src=""></iframe>
     </div>
 
     <script>
+        // --- CANVAS ---
+        const canvas = document.getElementById('neural');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        let particles = [];
+        const mouse = { x: null, y: null };
+
+        window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+        
+        class Particle {
+            constructor(){
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2;
+                this.speedX = Math.random() * 1 - 0.5;
+                this.speedY = Math.random() * 1 - 0.5;
+            }
+            update(){
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if(this.x < 0 || this.x > canvas.width) this.speedX *= -1;
+                if(this.y < 0 || this.y > canvas.height) this.speedY *= -1;
+            }
+            draw(){
+                ctx.fillStyle = 'rgba(0, 255, 157, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles(){ particles = []; for(let i=0; i<40; i++){ particles.push(new Particle()); } }
+        initParticles();
+
+        function animate(){
+            ctx.clearRect(0,0,canvas.width, canvas.height);
+            for(let i=0; i<particles.length; i++){
+                particles[i].update();
+                particles[i].draw();
+                // Connect
+                for(let j=i; j<particles.length; j++){
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if(dist < 100){
+                        ctx.beginPath();
+                        ctx.strokeStyle = `rgba(0, 255, 157, ${1 - dist/100})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // --- APP LOGIC ---
         const API_AN1 = "https://api.xyro.site/apk/an1-search?search=";
         const API_PLAY = "https://api.xyro.site/apk/playstore-search?query=";
         
         let currentApp = null;
-        const shuffleCategories = ["Popular", "Action", "Racing", "Tools"];
+        let xp = 0;
 
         window.onload = () => loadData("Popular");
 
-        // --- NAVIGATION ---
-        function goHome() {
-            closeProd();
-            closeSearch();
+        function resetApp() {
+            deactivateSearch(); closeProd(); loadData("Popular");
         }
 
-        // --- DATA LOGIC ---
-        async function loadData(query, targetGrid = "mainGrid") {
-            const grid = document.getElementById(targetGrid);
-            grid.innerHTML = Array(6).fill('<div class="card" style="height:180px; background:#111;"></div>').join('');
+        async function loadData(query, tabEl = null) {
+            if(tabEl) {
+                document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
+                tabEl.classList.add('active');
+            }
+            
+            const target = document.getElementById('mainGrid');
+            target.innerHTML = Array(6).fill('<div class="card skel" style="height:200px"></div>').join('');
 
             try {
                 const [an1, play] = await Promise.allSettled([
@@ -319,20 +461,9 @@
                     (an1.value.result || []).forEach(i => apps.push({ src: 'FAZ', title: i.title||i.name||"MOD", img: i.image||i.icon||"", dev: i.developer||"Faz Store", link: i.link }));
                 }
 
-                // FIX: Only shuffle if browsing categories. If Searching, Sort by relevance.
-                if (shuffleCategories.includes(query)) {
-                    apps.sort(() => Math.random() - 0.5);
-                } else {
-                    const lowerQ = query.toLowerCase();
-                    apps.sort((a, b) => {
-                        if (a.title.toLowerCase() === lowerQ) return -1;
-                        if (b.title.toLowerCase() === lowerQ) return 1;
-                        return 0;
-                    });
-                }
-
-                renderGrid(apps, grid);
-            } catch(e) { grid.innerHTML = ""; }
+                apps.sort(() => Math.random() - 0.5);
+                renderGrid(apps, target);
+            } catch(e) { target.innerHTML = ""; }
         }
 
         function renderGrid(apps, container) {
@@ -342,96 +473,143 @@
                 const div = document.createElement("div");
                 div.className = "card";
                 div.innerHTML = `
-                    <div class="source-tag ${isPlay?'src-play':'src-faz'}">${isPlay?'Play Store':'Faz Store'}</div>
+                    <div class="card-tag ${isPlay?'tag-play':'tag-faz'}">${isPlay?'OFFICIAL':'FAZ MOD'}</div>
                     <img src="${app.img}" class="card-img" onerror="this.src='https://via.placeholder.com/150'">
-                    <div class="app-name">${app.title}</div>
-                    <div class="app-dev">${app.dev}</div>
+                    <div class="card-title">${app.title}</div>
+                    <div class="card-dev">${app.dev}</div>
                 `;
                 div.onclick = () => openProd(app);
                 container.appendChild(div);
             });
         }
 
-        function loadCategory(cat, el) {
-            document.querySelectorAll('.cat-pill').forEach(c => c.classList.remove('active'));
-            el.classList.add('active');
-            document.getElementById("gridTitle").innerText = cat;
-            loadData(cat);
+        // --- DYNAMIC ISLAND LOGIC ---
+        function activateSearch() {
+            document.getElementById('island').classList.add('search-mode');
+            document.getElementById('searchRes').classList.add('active');
+            document.getElementById('searchInp').focus();
+        }
+        function deactivateSearch() {
+            document.getElementById('island').classList.remove('search-mode');
+            document.getElementById('searchRes').classList.remove('active');
+            document.getElementById('searchInp').value = "";
+            document.getElementById('searchGrid').innerHTML = "";
+        }
+
+        let debounce;
+        document.getElementById("searchInp").addEventListener("input", (e) => {
+            clearTimeout(debounce);
+            debounce = setTimeout(() => {
+                if(e.target.value.length > 1) searchData(e.target.value);
+            }, 600);
+        });
+
+        async function searchData(q) {
+            const grid = document.getElementById('searchGrid');
+            grid.innerHTML = '<div class="card skel" style="grid-column:1/-1; height:100px;"></div>';
+            
+            // Re-using fetch logic
+            try {
+                const [an1, play] = await Promise.allSettled([
+                    fetch(API_AN1 + encodeURIComponent(q)).then(r => r.json()),
+                    fetch(API_PLAY + encodeURIComponent(q)).then(r => r.json())
+                ]);
+                let apps = [];
+                if(play.status === "fulfilled") {
+                    let d = play.value;
+                    let list = (d.result && Array.isArray(d.result)) ? d.result : (Array.isArray(d) ? d : []);
+                    list.forEach(i => apps.push({ src: 'PLAY', title: i.name||"App", img: i.img||"", dev: i.developer||"Google Play", link: i.link }));
+                }
+                if(an1.status === "fulfilled" && an1.value.status) {
+                    (an1.value.result || []).forEach(i => apps.push({ src: 'FAZ', title: i.title||i.name||"MOD", img: i.image||i.icon||"", dev: i.developer||"Faz Store", link: i.link }));
+                }
+                
+                // Exact Match Sort
+                const lower = q.toLowerCase();
+                apps.sort((a,b) => {
+                    if(a.title.toLowerCase() === lower) return -1;
+                    if(b.title.toLowerCase() === lower) return 1;
+                    return 0;
+                });
+
+                renderGrid(apps, grid);
+            } catch(e) { grid.innerHTML = ""; }
         }
 
         // --- PRODUCT PAGE ---
         function openProd(app) {
             currentApp = app;
-            document.getElementById("pCover").src = app.img;
             document.getElementById("pIcon").src = app.img;
             document.getElementById("pTitle").innerText = app.title;
             document.getElementById("pDev").innerText = app.dev;
             
+            // Random color generator for glow
+            const hue = Math.floor(Math.random() * 360);
+            document.getElementById("prodGlow").style.setProperty('--accent-color', `hsl(${hue}, 80%, 50%)`);
+
             const btn = document.getElementById("pBtn");
+            const tag = document.getElementById("pSrcTag");
+
             if(app.src === 'PLAY') {
-                btn.className = "btn-main btn-blue";
-                btn.innerText = "Open in Play Store";
+                btn.className = "dl-btn dl-play"; btn.innerText = "Get from Play Store";
+                tag.innerText = "OFFICIAL"; tag.style.background = "rgba(255,255,255,0.1)"; tag.style.color = "#fff";
             } else {
-                btn.className = "btn-main btn-neon";
-                btn.innerText = "Download from Faz Store";
+                btn.className = "dl-btn dl-faz"; btn.innerText = "Download Mod";
+                tag.innerText = "FAZ STORE"; tag.style.background = "var(--primary)"; tag.style.color = "#000";
             }
-            document.getElementById("prodPage").classList.add("active");
+
+            document.getElementById("prodView").classList.add("active");
         }
-        function closeProd() { document.getElementById("prodPage").classList.remove("active"); }
+        function closeProd() { document.getElementById("prodView").classList.remove("active"); }
 
-        // --- SEARCH ---
-        function openSearch() { document.getElementById("searchUI").classList.add("show"); document.getElementById("searchInp").focus(); }
-        function closeSearch() { document.getElementById("searchUI").classList.remove("show"); document.getElementById("searchInp").value = ""; document.getElementById("searchGrid").innerHTML = ""; }
-        
-        let debounce;
-        document.getElementById("searchInp").addEventListener("input", (e) => {
-            clearTimeout(debounce);
-            debounce = setTimeout(() => {
-                if(e.target.value.length > 2) loadData(e.target.value, "searchGrid");
-            }, 600);
-        });
-
-        // --- DOWNLOAD SIMULATION ---
+        // --- DOWNLOAD ---
         function startDownload() {
             if(currentApp.src === 'PLAY') {
                 window.open(currentApp.link, '_blank');
             } else {
-                const term = document.getElementById("terminal");
-                const logs = document.getElementById("termLogs");
-                term.style.display = "flex";
-                logs.innerHTML = "";
+                closeProd();
+                deactivateSearch();
                 
-                const lines = [
-                    "Connecting to server...", 
-                    "Verifying package integrity...", 
-                    "Bypassing region restrictions...", 
-                    "Download link generated."
-                ];
-                
-                let i = 0;
-                let int = setInterval(() => {
-                    if(i < lines.length) {
-                        logs.innerHTML += `<div class="term-line">> ${lines[i]}</div>`;
-                        i++;
-                    } else {
+                // Dynamic Island Animation
+                const isl = document.getElementById("island");
+                const icon = document.getElementById("islIcon");
+                const fill = document.getElementById("islFill");
+                const status = document.getElementById("islStatus");
+
+                isl.classList.add("expanded");
+                icon.src = currentApp.img;
+                fill.style.width = "0%";
+                status.innerText = "Connecting...";
+
+                let w = 0;
+                const int = setInterval(() => {
+                    w += 2;
+                    fill.style.width = w + "%";
+                    if(w > 30) status.innerText = "Downloading...";
+                    if(w >= 100) {
                         clearInterval(int);
+                        status.innerText = "Complete";
                         setTimeout(() => {
-                            term.style.display = "none";
+                            isl.classList.remove("expanded");
                             openBrowser(currentApp.link);
-                        }, 800);
+                            xp += 10; // Level Up Logic
+                            document.querySelector(".user-info p").innerText = `${xp}/100 XP to Level 2`;
+                            document.querySelector(".xp-fill").style.width = `${xp}%`;
+                        }, 1000);
                     }
-                }, 600);
+                }, 50);
             }
         }
 
         function openBrowser(url) {
-            document.getElementById("webContent").src = url;
-            document.getElementById("browserFrame").style.display = "flex";
+            document.getElementById("webFrame").src = url;
+            document.getElementById("browser").style.display = "flex";
         }
         function closeBrowser() {
-            document.getElementById("browserFrame").style.display = "none";
-            document.getElementById("webContent").src = "";
+            document.getElementById("browser").style.display = "none";
+            document.getElementById("webFrame").src = "";
         }
+
     </script>
 </body>
 </html>
