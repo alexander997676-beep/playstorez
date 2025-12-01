@@ -3,430 +3,324 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>mob i - Latest & Search</title>
+    <title>AN1 App Search</title>
     <style>
-        /* --- CSS STYLES --- */
         :root {
-            --primary: #00e5ff; /* Cyan Blue */
-            --bg: #121212;
-            --card-bg: #1e1e1e;
-            --text-main: #ffffff;
-            --text-sec: #b3b3b3;
+            --primary: #5cb85c; /* AN1 Green */
+            --dark: #333;
+            --light: #f4f4f4;
+            --card-bg: #fff;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--light);
+            margin: 0;
+            padding: 0;
+            color: var(--dark);
         }
 
-        /* Navbar */
-        nav {
-            background: rgba(30, 30, 30, 0.95);
-            padding: 15px 5%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #333;
+        /* --- Header & Search Bar --- */
+        header {
+            background: var(--card-bg);
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
             position: sticky;
             top: 0;
             z-index: 100;
+            text-align: center;
         }
 
-        .logo { font-size: 1.8rem; font-weight: 800; }
-        .logo span { color: var(--primary); }
-
-        .nav-links button {
-            background: none;
-            border: none;
-            color: var(--text-main);
-            font-size: 1rem;
-            margin-left: 20px;
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: inline-block;
             cursor: pointer;
-            padding: 5px 10px;
-            font-weight: 500;
+        }
+
+        .search-box {
+            display: flex;
+            max-width: 600px;
+            margin: 0 auto;
+            gap: 10px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px 20px;
+            border-radius: 50px;
+            border: 2px solid #eee;
+            font-size: 16px;
+            outline: none;
             transition: 0.3s;
         }
 
-        .nav-links button.active, .nav-links button:hover {
-            color: var(--primary);
+        input:focus {
+            border-color: var(--primary);
         }
 
-        /* Sections */
-        .section {
-            display: none; /* Hidden by default */
-            padding: 20px 5%;
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            animation: fadeIn 0.5s ease;
-        }
-        .section.active { display: block; }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        /* Titles */
-        .section-title {
-            font-size: 1.5rem;
-            margin: 20px 0;
-            border-left: 4px solid var(--primary);
-            padding-left: 15px;
-        }
-
-        /* Search Box Design */
-        .search-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-            margin-top: 20px;
-        }
-
-        .input-group {
-            display: flex;
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 15px 20px;
+        button {
+            padding: 12px 25px;
             border-radius: 50px;
-            border: 2px solid #333;
-            background: var(--card-bg);
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            padding-right: 100px; /* Space for button */
-        }
-
-        input[type="text"]:focus { border-color: var(--primary); }
-
-        button#search-btn {
-            position: absolute;
-            right: 5px;
-            top: 5px;
-            bottom: 5px;
-            padding: 0 25px;
-            border-radius: 40px;
             border: none;
             background: var(--primary);
-            color: #000;
+            color: white;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
+            font-size: 16px;
+            transition: 0.3s;
         }
 
-        button#search-btn:active { transform: scale(0.95); }
+        button:hover {
+            background: #4cae4c;
+            transform: scale(1.05);
+        }
 
-        /* Grid System */
+        /* --- Results Container --- */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 15px;
+        }
+
+        h2 {
+            border-left: 5px solid var(--primary);
+            padding-left: 10px;
+            margin-bottom: 25px;
+        }
+
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
         }
 
-        /* Card Design */
+        /* --- Card Design --- */
         .card {
             background: var(--card-bg);
-            border-radius: 12px;
+            border-radius: 15px;
             overflow: hidden;
-            border: 1px solid #333;
-            cursor: pointer;
-            transition: transform 0.3s;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease;
+            text-decoration: none;
+            color: inherit;
             display: flex;
             flex-direction: column;
         }
 
         .card:hover {
             transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: 0 5px 15px rgba(0, 229, 255, 0.1);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
         }
 
-        .card img {
+        .card-img {
             width: 100%;
-            height: 220px;
-            object-fit: contain;
-            background: #fff;
+            height: 160px;
+            object-fit: cover;
+            background: #eee;
+        }
+
+        .card-body {
             padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
         }
 
-        .card-body { padding: 15px; text-align: center; }
-        .card-title { font-weight: bold; font-size: 1rem; margin-bottom: 5px; }
-        .card-desc { font-size: 0.8rem; color: var(--text-sec); display: none; } /* Hidden in grid, shown in popup */
-
-        /* Loader */
-        .loader {
-            display: none;
-            border: 4px solid #333;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 30px auto;
+        .badge {
+            background: #eee;
+            color: #666;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            width: fit-content;
+            margin-bottom: 8px;
         }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        .badge.mod {
+            background: #ffeb3b; /* Yellow for MOD */
+            color: #333;
+        }
 
-        /* Modal (Popup) */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-            justify-content: center;
+        .app-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
+            line-height: 1.4;
+        }
+
+        .developer {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+
+        .meta {
+            margin-top: auto;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .rating {
+            color: #f39c12; /* Star color */
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .download-btn {
+            color: var(--primary);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Loading / Error --- */
+        #loader {
+            display: none;
+            text-align: center;
+            margin-top: 50px;
+            font-size: 18px;
+            color: #666;
+        }
+        
+        .error {
+            text-align: center;
+            color: red;
             padding: 20px;
+            background: #fff;
+            border-radius: 10px;
         }
-
-        .modal-content {
-            background: var(--card-bg);
-            width: 100%;
-            max-width: 500px;
-            border-radius: 15px;
-            padding: 20px;
-            border: 1px solid var(--primary);
-            position: relative;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        .close-btn {
-            position: absolute;
-            top: 15px; right: 20px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            color: #fff;
-        }
-
-        .modal-specs ul { margin-top: 15px; list-style: none; }
-        .modal-specs li {
-            padding: 8px 0;
-            border-bottom: 1px solid #333;
-            color: var(--text-sec);
-            font-size: 0.9rem;
-        }
-        .modal-specs strong { color: var(--primary); display: block; }
 
     </style>
 </head>
 <body>
 
-    <!-- Navigation -->
-    <nav>
-        <div class="logo">mob <span>i</span></div>
-        <div class="nav-links">
-            <button id="btn-home" onclick="showPage('home')" class="active">Home</button>
-            <button id="btn-search" onclick="showPage('search')">Search</button>
+    <header>
+        <div class="logo" onclick="initHome()">AN1 Market</div>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search apps (e.g. Whatsapp)...">
+            <button onclick="performSearch()">Search</button>
         </div>
-    </nav>
+    </header>
 
-    <!-- 1. HOME SECTION (Trending/Latest) -->
-    <section id="home-section" class="section active">
-        <h2 class="section-title">🔥 Trending Now</h2>
-        <p style="color: gray; margin-bottom: 20px;">Top latest mobile phones</p>
+    <div class="container">
+        <h2 id="sectionTitle">Trending Apps</h2>
         
-        <!-- Loader for Home -->
-        <div id="home-loader" class="loader"></div>
+        <div id="loader">Searching API... Please wait...</div>
         
-        <div class="grid" id="home-grid">
-            <!-- Trending mobiles will load here automatically -->
-        </div>
-    </section>
-
-    <!-- 2. SEARCH SECTION -->
-    <section id="search-section" class="section">
-        <div class="search-container">
-            <div class="input-group">
-                <input type="text" id="search-input" placeholder="Search mobile (e.g. Pixel 8, iPhone 15)...">
-                <button id="search-btn" onclick="performSearch()">Search</button>
-            </div>
-        </div>
-
-        <!-- Loader for Search -->
-        <div id="search-loader" class="loader"></div>
-
-        <div class="grid" id="search-grid">
-            <!-- Search results will appear here -->
-        </div>
-    </section>
-
-    <!-- 3. DETAILS MODAL -->
-    <div class="modal" id="details-modal">
-        <div class="modal-content">
-            <span class="close-btn" onclick="closeModal()">&times;</span>
-            <div style="text-align: center;">
-                <img id="modal-img" src="" style="height: 180px; margin-bottom: 10px;">
-                <h2 id="modal-title"></h2>
-            </div>
-            <div class="modal-specs" id="modal-specs"></div>
+        <div id="resultsGrid" class="grid">
+            <!-- Cards will be injected here by JS -->
         </div>
     </div>
 
     <script>
-        // API Base URL
-        const API_URL = "https://api.xyro.site/search/gsmarena";
+        const API_URL = "https://api.xyro.site/apk/an1-search?search=";
+        const grid = document.getElementById("resultsGrid");
+        const loader = document.getElementById("loader");
+        const title = document.getElementById("sectionTitle");
 
-        // ---- PAGE NAVIGATION LOGIC ----
-        function showPage(pageId) {
-            // Hide all sections
-            document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
-            document.querySelectorAll('.nav-links button').forEach(btn => btn.classList.remove('active'));
+        // 1. Page Load Hone Par
+        window.onload = function() {
+            initHome();
+        };
 
-            // Show selected section
-            if (pageId === 'home') {
-                document.getElementById('home-section').classList.add('active');
-                document.getElementById('btn-home').classList.add('active');
-            } else {
-                document.getElementById('search-section').classList.add('active');
-                document.getElementById('btn-search').classList.add('active');
-                // Focus on input automatically
-                setTimeout(() => document.getElementById('search-input').focus(), 100);
-            }
+        function initHome() {
+            document.getElementById("searchInput").value = "";
+            title.innerText = "Popular Games & Apps";
+            // Home page khali na dikhe isliye default search kar rahe hain
+            fetchData("Minecraft"); 
         }
 
-        // ---- HOME PAGE LOGIC (AUTO LOAD) ----
-        // Jaise hi page load hoga, ye chalega
-        window.addEventListener('DOMContentLoaded', () => {
-            loadHomeData();
+        // 2. Search Button Logic
+        function performSearch() {
+            const query = document.getElementById("searchInput").value.trim();
+            if(!query) return;
+            
+            title.innerText = `Results for "${query}"`;
+            fetchData(query);
+        }
+
+        // Enter key dabane par bhi search ho
+        document.getElementById("searchInput").addEventListener("keypress", function(e) {
+            if (e.key === "Enter") performSearch();
         });
 
-        async function loadHomeData() {
-            const grid = document.getElementById('home-grid');
-            const loader = document.getElementById('home-loader');
-
-            loader.style.display = 'block';
-
-            // Kyunki ye API "Latest" ka direct option nahi deti,
-            // Hum "Samsung" ya "iPhone" search karke trending phones dikhayenge
-            // Taaki Home page khali na rahe.
-            try {
-                // Default search for Home Page (You can change "Samsung" to "2024" or "Apple")
-                const response = await fetch(`${API_URL}?q=Samsung`);
-                const json = await response.json();
-
-                loader.style.display = 'none';
-
-                if (json.status && json.data) {
-                    // Sirf pehle 8 phones dikhayenge home page par
-                    const topPhones = json.data.slice(0, 10);
-                    renderGrid(topPhones, grid);
-                } else {
-                    grid.innerHTML = "<p>Could not load trending phones.</p>";
-                }
-            } catch (error) {
-                console.error("Home Load Error:", error);
-                loader.style.display = 'none';
-                grid.innerHTML = "<p>Check internet connection.</p>";
-            }
-        }
-
-        // ---- SEARCH LOGIC (FIXED) ----
-        async function performSearch() {
-            const query = document.getElementById('search-input').value.trim();
-            const grid = document.getElementById('search-grid');
-            const loader = document.getElementById('search-loader');
-
-            if (!query) return; // Empty search ko roko
-
-            // UI Reset
+        // 3. Main API Function
+        async function fetchData(query) {
+            // Screen clear karein aur loader dikhayein
             grid.innerHTML = "";
-            loader.style.display = 'block';
+            loader.style.display = "block";
 
             try {
                 // API Call
-                const response = await fetch(`${API_URL}?q=${encodeURIComponent(query)}`);
+                const response = await fetch(API_URL + encodeURIComponent(query));
                 const json = await response.json();
 
-                loader.style.display = 'none';
+                loader.style.display = "none";
 
-                if (json.status && json.data && json.data.length > 0) {
-                    renderGrid(json.data, grid);
+                // --- IS PART KO DHYAN SE DEKHEIN (JSON Parsing) ---
+                // Aapke JSON ke hisaab se data "json.result" mein hai
+                if (json.status === true && json.result && json.result.length > 0) {
+                    
+                    json.result.forEach(app => {
+                        createCard(app);
+                    });
+
                 } else {
-                    grid.innerHTML = `<p style="text-align:center; width:100%; margin-top:20px;">No results found for "${query}"</p>`;
+                    grid.innerHTML = `<div class="error">No results found for "${query}"</div>`;
                 }
 
             } catch (error) {
-                console.error("Search Error:", error);
-                loader.style.display = 'none';
-                grid.innerHTML = `<p style="text-align:center; color:red; width:100%;">API Error. Please try again.</p>`;
+                console.error(error);
+                loader.style.display = "none";
+                grid.innerHTML = `<div class="error">Failed to connect to API. Check your internet.</div>`;
             }
         }
 
-        // ---- COMMON RENDER FUNCTION ----
-        function renderGrid(data, container) {
-            container.innerHTML = ""; // Clear old data
-            data.forEach(phone => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.onclick = () => openModal(phone); // Click to open details
+        // 4. Card Banane Wala Function
+        function createCard(app) {
+            // Fallback values agar koi data missing ho
+            const imgUrl = app.image || "https://via.placeholder.com/300x160";
+            const appName = app.title || "Unknown App";
+            const devName = app.developer || "Unknown Dev";
+            const ratingVal = app.rating ? app.rating.value : "N/A";
+            const appType = app.type || "APK";
+            const link = app.link || "#";
 
-                card.innerHTML = `
-                    <img src="${phone.thumbnail}" alt="${phone.name}" onerror="this.src='https://via.placeholder.com/150?text=No+Img'">
-                    <div class="card-body">
-                        <div class="card-title">${phone.name}</div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-        }
+            // Type ke liye badge color logic
+            const badgeClass = (appType === "MOD") ? "badge mod" : "badge";
 
-        // ---- POPUP / MODAL LOGIC ----
-        function openModal(phone) {
-            const modal = document.getElementById('details-modal');
-            const specsContainer = document.getElementById('modal-specs');
-
-            document.getElementById('modal-title').innerText = phone.name;
-            document.getElementById('modal-img').src = phone.thumbnail;
-
-            // Description Parsing (Sahi format mein)
-            specsContainer.innerHTML = "";
-            const ul = document.createElement('ul');
-
-            let desc = phone.description || "Details not available";
-            // Cleaning text
-            desc = desc.replace("Android smartphone.", "").replace("Features", "");
+            const card = document.createElement("a");
+            card.href = link;
+            card.target = "_blank"; // New tab mein khulega
+            card.className = "card";
             
-            // Splitting logic
-            let items = desc.split(/,|\./); // Comma ya full stop se split karega
+            card.innerHTML = `
+                <img src="${imgUrl}" alt="${appName}" class="card-img" onerror="this.src='https://via.placeholder.com/300x160?text=No+Image'">
+                <div class="card-body">
+                    <span class="${badgeClass}">${appType}</span>
+                    <div class="app-title">${appName}</div>
+                    <div class="developer">${devName}</div>
+                    
+                    <div class="meta">
+                        <div class="rating">
+                            <span>★</span> ${ratingVal}
+                        </div>
+                        <span class="download-btn">Download</span>
+                    </div>
+                </div>
+            `;
 
-            items.forEach(item => {
-                let text = item.trim();
-                if (text.length > 2) {
-                    let li = document.createElement('li');
-                    // Highlight specs like GB, mAh, inches
-                    if (text.match(/\d/)) {
-                        li.innerHTML = `<strong>•</strong> ${text}`;
-                        li.style.color = "#fff"; // Brighten text with numbers
-                    } else {
-                        li.innerText = text;
-                    }
-                    ul.appendChild(li);
-                }
-            });
-
-            specsContainer.appendChild(ul);
-            modal.style.display = "flex";
+            grid.appendChild(card);
         }
-
-        function closeModal() {
-            document.getElementById('details-modal').style.display = "none";
-        }
-
-        // ---- ENTER KEY EVENT LISTENER ----
-        // Ye code ensure karega ki Enter dabane par search ho
-        document.getElementById('search-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                performSearch();
-            }
-        });
-
     </script>
+
 </body>
 </html>
