@@ -6,8 +6,8 @@
     <title>FAZ STORE - App Market</title>
     <style>
         :root {
-            --primary: #00d2ff; /* Modern Blue/Cyan gradient start */
-            --primary-dark: #3a7bd5; /* Gradient end */
+            --primary: #00d2ff;
+            --primary-dark: #3a7bd5;
             --dark: #222;
             --light: #f8f9fa;
             --card-bg: #fff;
@@ -15,14 +15,14 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             background-color: var(--light);
             margin: 0;
             padding: 0;
             color: var(--dark);
         }
 
-        /* --- Header & Search Bar --- */
+        /* --- Header --- */
         header {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             padding: 25px 20px;
@@ -63,7 +63,6 @@
             outline: none;
             background: #fff;
             color: #333;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
         button {
@@ -83,7 +82,7 @@
             transform: scale(1.05);
         }
 
-        /* --- Results Container --- */
+        /* --- Results --- */
         .container {
             max-width: 1200px;
             margin: 30px auto;
@@ -112,11 +111,10 @@
             overflow: hidden;
             box-shadow: 0 10px 20px rgba(0,0,0,0.05);
             transition: all 0.3s ease;
-            text-decoration: none;
-            color: inherit;
             display: flex;
             flex-direction: column;
             position: relative;
+            cursor: pointer;
             border: 1px solid rgba(0,0,0,0.03);
         }
 
@@ -170,9 +168,7 @@
             font-size: 17px;
             font-weight: 700;
             margin: 0 0 5px 0;
-            line-height: 1.3;
             color: var(--dark);
-            /* Limit text lines */
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -198,57 +194,103 @@
             color: #ffb400;
             font-weight: bold;
             font-size: 14px;
-            display: flex;
-            align-items: center;
-            gap: 4px;
         }
 
-        .download-text {
-            color: var(--primary-dark);
-            font-size: 13px;
+        .download-btn-style {
+            background: var(--primary-dark);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
             font-weight: 700;
             text-transform: uppercase;
         }
 
-        /* --- Utilities --- */
-        #loader {
+        /* --- Download Modal Popup Styles --- */
+        .modal-overlay {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
             text-align: center;
-            margin-top: 50px;
+            width: 90%;
+            max-width: 350px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            animation: popUp 0.3s ease-out;
+        }
+
+        @keyframes popUp {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .modal-text {
             font-size: 18px;
-            color: var(--text-grey);
+            font-weight: bold;
+            margin-bottom: 10px;
         }
         
-        .error {
-            text-align: center;
-            color: #d9534f;
-            padding: 20px;
-            background: #fff;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        .modal-subtext {
+            font-size: 14px;
+            color: #666;
         }
+
+        /* Utils */
+        #loader { display: none; text-align: center; margin-top: 50px; color: var(--text-grey); }
+        .error { text-align: center; color: #d9534f; padding: 20px; }
 
     </style>
 </head>
 <body>
 
     <header>
-        <!-- Updated Store Name -->
         <div class="logo" onclick="initHome()">FAZ STORE</div>
-        
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search apps & games (e.g. Pubg)...">
+            <input type="text" id="searchInput" placeholder="Search apps & games...">
             <button onclick="performSearch()">Search</button>
         </div>
     </header>
 
     <div class="container">
-        <h2 id="sectionTitle">Trending Now</h2>
-        
-        <div id="loader">Fetching data from FAZ STORE...</div>
-        
-        <div id="resultsGrid" class="grid">
-            <!-- Results here -->
+        <h2 id="sectionTitle">Top Picks</h2>
+        <div id="loader">Fetching apps...</div>
+        <div id="resultsGrid" class="grid"></div>
+    </div>
+
+    <!-- Download Processing Modal -->
+    <div id="downloadModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <div class="modal-text">Starting Download...</div>
+            <div id="modalAppName" class="modal-subtext">Please wait</div>
         </div>
     </div>
 
@@ -257,24 +299,20 @@
         const grid = document.getElementById("resultsGrid");
         const loader = document.getElementById("loader");
         const title = document.getElementById("sectionTitle");
+        const modal = document.getElementById("downloadModal");
+        const modalAppName = document.getElementById("modalAppName");
 
-        // 1. Initialize Home Page
-        window.onload = function() {
-            initHome();
-        };
+        window.onload = function() { initHome(); };
 
         function initHome() {
             document.getElementById("searchInput").value = "";
             title.innerText = "Top Picks for You";
-            // Default search to fill the home page
             fetchData("Minecraft"); 
         }
 
-        // 2. Search Logic
         function performSearch() {
             const query = document.getElementById("searchInput").value.trim();
             if(!query) return;
-            
             title.innerText = `Search Results for "${query}"`;
             fetchData(query);
         }
@@ -283,7 +321,6 @@
             if (e.key === "Enter") performSearch();
         });
 
-        // 3. Fetch Data from API
         async function fetchData(query) {
             grid.innerHTML = "";
             loader.style.display = "block";
@@ -291,64 +328,66 @@
             try {
                 const response = await fetch(API_URL + encodeURIComponent(query));
                 const json = await response.json();
-
                 loader.style.display = "none";
 
-                // Handle JSON structure provided by user
                 if (json.status === true && json.result && json.result.length > 0) {
-                    json.result.forEach(app => {
-                        createCard(app);
-                    });
+                    json.result.forEach(app => { createCard(app); });
                 } else {
-                    grid.innerHTML = `<div class="error">No results found on FAZ STORE for "${query}"</div>`;
+                    grid.innerHTML = `<div class="error">No results found for "${query}"</div>`;
                 }
-
             } catch (error) {
-                console.error(error);
                 loader.style.display = "none";
-                grid.innerHTML = `<div class="error">Connection Error. Please try again.</div>`;
+                grid.innerHTML = `<div class="error">Connection Error.</div>`;
             }
         }
 
-        // 4. Create HTML Card
         function createCard(app) {
-            // Data extraction with fallbacks
-            const imgUrl = app.image || "https://via.placeholder.com/300x160";
+            const imgUrl = app.image || "https://via.placeholder.com/300";
             const appName = app.title || "Unknown App";
-            const devName = app.developer || "Faz Store Dev";
+            const devName = app.developer || "Faz Store";
             const ratingVal = app.rating ? app.rating.value : "4.5";
             const appType = app.type || "APK";
             const link = app.link || "#";
-
-            // Style badge based on type
             const badgeClass = (appType === "MOD") ? "type-badge mod" : "type-badge";
 
-            const card = document.createElement("a");
-            card.href = link;
-            card.target = "_blank"; 
+            // Important: We use a DIV with onclick, not an A tag, to control the download flow
+            const card = document.createElement("div");
             card.className = "card";
             
+            // Jab user click karega, startDownload function chalega
+            card.onclick = () => startDownload(link, appName);
+
             card.innerHTML = `
                 <div class="card-img-wrapper">
                     <span class="${badgeClass}">${appType}</span>
-                    <img src="${imgUrl}" alt="${appName}" class="card-img" onerror="this.src='https://via.placeholder.com/300x160?text=No+Preview'">
+                    <img src="${imgUrl}" alt="${appName}" class="card-img">
                 </div>
                 <div class="card-body">
-                    <div class="app-title" title="${appName}">${appName}</div>
+                    <div class="app-title">${appName}</div>
                     <div class="developer">${devName}</div>
-                    
                     <div class="card-footer">
-                        <div class="rating">
-                            <span>★</span> ${ratingVal}
-                        </div>
-                        <span class="download-text">GET</span>
+                        <div class="rating"><span>★</span> ${ratingVal}</div>
+                        <span class="download-btn-style">GET</span>
                     </div>
                 </div>
             `;
-
             grid.appendChild(card);
         }
-    </script>
 
+        // --- NEW FUNCTION: Handled Download "Feel" ---
+        function startDownload(url, name) {
+            // 1. Show the Loading Modal
+            modalAppName.innerText = "Connecting to " + name + " server...";
+            modal.style.display = "flex";
+
+            // 2. Wait 1.5 seconds (Fake loading) then redirect in SAME TAB
+            setTimeout(() => {
+                modal.style.display = "none";
+                // Redirect user to the page (Same Tab)
+                window.location.href = url;
+            }, 1500);
+        }
+
+    </script>
 </body>
 </html>
