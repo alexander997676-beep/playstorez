@@ -3,269 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAZ STORE - App Market</title>
+    <title>FAZ STORE - Hybrid Market</title>
     <style>
         :root {
             --primary: #00d2ff;
             --primary-dark: #3a7bd5;
-            --dark: #222;
-            --light: #f8f9fa;
+            --bg: #f4f6f8;
             --card-bg: #fff;
-            --text-grey: #666;
+            --text-dark: #222;
         }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--light);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
             margin: 0;
             padding: 0;
-            color: var(--dark);
+            color: var(--text-dark);
         }
 
-        /* --- Header --- */
+        /* Header */
         header {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            padding: 25px 20px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            background: linear-gradient(135deg, #111, #333);
+            padding: 20px;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             text-align: center;
         }
 
         .logo {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 900;
-            color: #fff;
+            color: #00d2ff;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
             margin-bottom: 15px;
             display: inline-block;
-            cursor: pointer;
-            letter-spacing: 1px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
         .search-box {
             display: flex;
             max-width: 600px;
             margin: 0 auto;
-            gap: 10px;
-            background: rgba(255, 255, 255, 0.2);
+            background: #fff;
+            border-radius: 50px;
             padding: 5px;
-            border-radius: 60px;
         }
 
         input {
             flex: 1;
-            padding: 14px 25px;
-            border-radius: 50px;
             border: none;
-            font-size: 16px;
+            padding: 12px 20px;
+            border-radius: 50px;
             outline: none;
-            background: #fff;
-            color: #333;
+            font-size: 16px;
         }
 
         button {
-            padding: 12px 30px;
-            border-radius: 50px;
+            background: var(--primary);
+            color: #000;
             border: none;
-            background: #222;
-            color: white;
+            padding: 10px 25px;
+            border-radius: 50px;
             font-weight: bold;
             cursor: pointer;
-            font-size: 16px;
             transition: 0.3s;
         }
 
-        button:hover {
-            background: #000;
-            transform: scale(1.05);
-        }
+        button:hover { background: var(--primary-dark); color: #fff; }
 
-        /* --- Results --- */
+        /* Container */
         .container {
             max-width: 1200px;
             margin: 30px auto;
             padding: 0 15px;
         }
 
-        h2 {
-            font-size: 24px;
-            margin-bottom: 25px;
-            color: var(--dark);
-            border-bottom: 2px solid #e0e0e0;
-            padding-bottom: 10px;
-            display: inline-block;
-        }
+        h2 { border-left: 5px solid var(--primary); padding-left: 10px; }
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-            gap: 25px;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
         }
 
-        /* --- Card Design --- */
+        /* Cards */
         .card {
             background: var(--card-bg);
-            border-radius: 16px;
+            border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
-            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            transition: transform 0.3s;
+            cursor: pointer;
             display: flex;
             flex-direction: column;
             position: relative;
-            cursor: pointer;
-            border: 1px solid rgba(0,0,0,0.03);
         }
 
-        .card:hover {
-            transform: translateY(-7px);
-            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
-        }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.15); }
 
-        .card-img-wrapper {
-            position: relative;
-            height: 160px;
+        .card-img-wrap {
+            height: 150px;
             overflow: hidden;
+            position: relative;
         }
 
-        .card-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s;
-        }
-        
-        .card:hover .card-img {
-            transform: scale(1.05);
-        }
+        .card-img { width: 100%; height: 100%; object-fit: cover; }
 
-        .type-badge {
+        /* Badges for Source */
+        .source-badge {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: #fff;
             padding: 4px 10px;
             border-radius: 20px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: bold;
-            backdrop-filter: blur(4px);
-        }
-        
-        .type-badge.mod {
-            background: linear-gradient(45deg, #ff416c, #ff4b2b);
+            color: #fff;
+            z-index: 10;
         }
 
-        .card-body {
-            padding: 18px;
-            flex-grow: 1;
-            display: flex;
-            flex-direction: column;
-        }
+        .badge-an1 { background: linear-gradient(45deg, #ff416c, #ff4b2b); } /* Red/Orange for MODs */
+        .badge-play { background: linear-gradient(45deg, #00d2ff, #3a7bd5); } /* Blue for PlayStore */
+
+        .card-body { padding: 15px; display: flex; flex-direction: column; flex-grow: 1; }
 
         .app-title {
-            font-size: 17px;
             font-weight: 700;
-            margin: 0 0 5px 0;
-            color: var(--dark);
+            font-size: 15px;
+            margin-bottom: 5px;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
 
-        .developer {
-            font-size: 13px;
-            color: var(--text-grey);
-            margin-bottom: 12px;
-        }
+        .developer { font-size: 12px; color: #777; margin-bottom: 10px; }
 
         .card-footer {
             margin-top: auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-top: 1px solid #f0f0f0;
-            padding-top: 12px;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
         }
 
-        .rating {
-            color: #ffb400;
-            font-weight: bold;
-            font-size: 14px;
-        }
-
-        .download-btn-style {
-            background: var(--primary-dark);
-            color: white;
-            padding: 6px 16px;
-            border-radius: 20px;
+        .btn-get {
+            padding: 5px 15px;
+            border-radius: 5px;
             font-size: 12px;
-            font-weight: 700;
+            font-weight: bold;
             text-transform: uppercase;
         }
 
-        /* --- Download Modal Popup Styles --- */
+        .btn-an1 { background: #ffebee; color: #d32f2f; }
+        .btn-play { background: #e3f2fd; color: #1976d2; }
+
+        /* Loader & Modal */
+        #loader { display: none; text-align: center; padding: 20px; font-weight: bold; color: #666; }
+        
         .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 1000; justify-content: center; align-items: center;
             backdrop-filter: blur(5px);
         }
-
         .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            text-align: center;
-            width: 90%;
-            max-width: 350px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-            animation: popUp 0.3s ease-out;
+            background: white; padding: 30px; border-radius: 15px; text-align: center; width: 80%; max-width: 300px;
         }
-
-        @keyframes popUp {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px auto;
+            border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%;
+            width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 15px;
         }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .modal-text {
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-        
-        .modal-subtext {
-            font-size: 14px;
-            color: #666;
-        }
-
-        /* Utils */
-        #loader { display: none; text-align: center; margin-top: 50px; color: var(--text-grey); }
-        .error { text-align: center; color: #d9534f; padding: 20px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
     </style>
 </head>
@@ -274,120 +186,178 @@
     <header>
         <div class="logo" onclick="initHome()">FAZ STORE</div>
         <div class="search-box">
-            <input type="text" id="searchInput" placeholder="Search apps & games...">
-            <button onclick="performSearch()">Search</button>
+            <input type="text" id="searchInput" placeholder="Search apps (e.g. PUBG, WhatsApp)...">
+            <button onclick="handleSearch()">GO</button>
         </div>
     </header>
 
     <div class="container">
-        <h2 id="sectionTitle">Top Picks</h2>
-        <div id="loader">Fetching apps...</div>
-        <div id="resultsGrid" class="grid"></div>
+        <h2 id="pageTitle">Recommended</h2>
+        <div id="loader">Mixing results from servers...</div>
+        <div id="grid" class="grid"></div>
     </div>
 
-    <!-- Download Processing Modal -->
+    <!-- Download Modal (Only for AN1) -->
     <div id="downloadModal" class="modal-overlay">
         <div class="modal-content">
             <div class="spinner"></div>
-            <div class="modal-text">Starting Download...</div>
-            <div id="modalAppName" class="modal-subtext">Please wait</div>
+            <h3>Requesting Server...</h3>
+            <p id="modalAppName">Please wait</p>
         </div>
     </div>
 
     <script>
-        const API_URL = "https://api.xyro.site/apk/an1-search?search=";
-        const grid = document.getElementById("resultsGrid");
+        const API_AN1 = "https://api.xyro.site/apk/an1-search?search=";
+        const API_PLAY = "https://api.xyro.site/apk/playstore-search?query=";
+        
+        const grid = document.getElementById("grid");
         const loader = document.getElementById("loader");
-        const title = document.getElementById("sectionTitle");
+        const title = document.getElementById("pageTitle");
         const modal = document.getElementById("downloadModal");
-        const modalAppName = document.getElementById("modalAppName");
 
-        window.onload = function() { initHome(); };
+        window.onload = () => initHome();
 
         function initHome() {
             document.getElementById("searchInput").value = "";
-            title.innerText = "Top Picks for You";
-            fetchData("Minecraft"); 
+            title.innerText = "Trending Games & Apps";
+            // Home page par ek popular keyword search karke bhara hua dikhayenge
+            fetchMixedData("Action"); 
         }
 
-        function performSearch() {
+        function handleSearch() {
             const query = document.getElementById("searchInput").value.trim();
-            if(!query) return;
-            title.innerText = `Search Results for "${query}"`;
-            fetchData(query);
+            if (query) {
+                title.innerText = `Results for "${query}"`;
+                fetchMixedData(query);
+            }
         }
 
-        document.getElementById("searchInput").addEventListener("keypress", function(e) {
-            if (e.key === "Enter") performSearch();
+        // Enter key support
+        document.getElementById("searchInput").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") handleSearch();
         });
 
-        async function fetchData(query) {
+        // --- MAIN LOGIC: Fetch Both APIs and Mix ---
+        async function fetchMixedData(query) {
             grid.innerHTML = "";
             loader.style.display = "block";
 
             try {
-                const response = await fetch(API_URL + encodeURIComponent(query));
-                const json = await response.json();
+                // Dono API ko ek saath call kar rahe hain
+                const [an1Res, playRes] = await Promise.allSettled([
+                    fetch(API_AN1 + encodeURIComponent(query)).then(r => r.json()),
+                    fetch(API_PLAY + encodeURIComponent(query)).then(r => r.json())
+                ]);
+
                 loader.style.display = "none";
 
-                if (json.status === true && json.result && json.result.length > 0) {
-                    json.result.forEach(app => { createCard(app); });
-                } else {
-                    grid.innerHTML = `<div class="error">No results found for "${query}"</div>`;
+                let finalResults = [];
+
+                // 1. Process AN1 Data
+                if (an1Res.status === "fulfilled" && an1Res.value.status === true) {
+                    const an1Apps = an1Res.value.result || [];
+                    an1Apps.forEach(app => {
+                        finalResults.push({
+                            source: "AN1", // Identifier
+                            title: app.title,
+                            image: app.image,
+                            dev: app.developer,
+                            rating: app.rating ? app.rating.value : "4.5",
+                            link: app.link,
+                            badge: app.type || "MOD"
+                        });
+                    });
                 }
+
+                // 2. Process Play Store Data
+                if (playRes.status === "fulfilled") {
+                    let playApps = [];
+                    const data = playRes.value;
+                    // Playstore API structure check
+                    if (Array.isArray(data)) playApps = data;
+                    else if (data.data) playApps = data.data;
+
+                    playApps.forEach(app => {
+                        finalResults.push({
+                            source: "PLAY", // Identifier
+                            title: app.title || app.appName,
+                            image: app.icon || app.image, // Play store aksar 'icon' use karta hai
+                            dev: app.developer || app.author,
+                            rating: app.scoreText || "4.8",
+                            link: `https://play.google.com/store/apps/details?id=${app.id || app.appId || app.packageName}`,
+                            badge: "OFFICIAL"
+                        });
+                    });
+                }
+
+                // 3. Shuffle/Mix Data (Taaki AN1 aur PlayStore mix hoke dikhein)
+                finalResults.sort(() => Math.random() - 0.5);
+
+                if (finalResults.length === 0) {
+                    grid.innerHTML = `<p style="text-align:center; width:100%;">No apps found.</p>`;
+                    return;
+                }
+
+                // 4. Render Cards
+                finalResults.forEach(app => createCard(app));
+
             } catch (error) {
+                console.error(error);
                 loader.style.display = "none";
-                grid.innerHTML = `<div class="error">Connection Error.</div>`;
+                grid.innerHTML = `<p style="text-align:center; color:red;">Network Error.</p>`;
             }
         }
 
         function createCard(app) {
-            const imgUrl = app.image || "https://via.placeholder.com/300";
-            const appName = app.title || "Unknown App";
-            const devName = app.developer || "Faz Store";
-            const ratingVal = app.rating ? app.rating.value : "4.5";
-            const appType = app.type || "APK";
-            const link = app.link || "#";
-            const badgeClass = (appType === "MOD") ? "type-badge mod" : "type-badge";
-
-            // Important: We use a DIV with onclick, not an A tag, to control the download flow
+            // Check for missing image
+            const img = app.image || "https://via.placeholder.com/300x200?text=No+Icon";
+            
             const card = document.createElement("div");
             card.className = "card";
-            
-            // Jab user click karega, startDownload function chalega
-            card.onclick = () => startDownload(link, appName);
+
+            // Colors aur Badge decide karo source ke hisaab se
+            let badgeClass = app.source === "AN1" ? "badge-an1" : "badge-play";
+            let btnClass = app.source === "AN1" ? "btn-an1" : "btn-play";
+            let btnText = app.source === "AN1" ? "GET MOD" : "PLAY STORE";
+
+            // Click behavior
+            card.onclick = () => {
+                if (app.source === "AN1") {
+                    // AN1 ke liye Popup animation
+                    startAN1Download(app.link, app.title);
+                } else {
+                    // Play Store ke liye Direct Redirect
+                    window.open(app.link, '_blank');
+                }
+            };
 
             card.innerHTML = `
-                <div class="card-img-wrapper">
-                    <span class="${badgeClass}">${appType}</span>
-                    <img src="${imgUrl}" alt="${appName}" class="card-img">
+                <div class="card-img-wrap">
+                    <span class="source-badge ${badgeClass}">${app.badge}</span>
+                    <img src="${img}" class="card-img" alt="${app.title}">
                 </div>
                 <div class="card-body">
-                    <div class="app-title">${appName}</div>
-                    <div class="developer">${devName}</div>
+                    <div class="app-title">${app.title}</div>
+                    <div class="developer">${app.dev || "Unknown"}</div>
                     <div class="card-footer">
-                        <div class="rating"><span>★</span> ${ratingVal}</div>
-                        <span class="download-btn-style">GET</span>
+                        <span style="font-size:12px; font-weight:bold; color:#fbc02d;">★ ${app.rating}</span>
+                        <span class="btn-get ${btnClass}">${btnText}</span>
                     </div>
                 </div>
             `;
+
             grid.appendChild(card);
         }
 
-        // --- NEW FUNCTION: Handled Download "Feel" ---
-        function startDownload(url, name) {
-            // 1. Show the Loading Modal
-            modalAppName.innerText = "Connecting to " + name + " server...";
+        function startAN1Download(url, name) {
+            document.getElementById("modalAppName").innerText = "Connecting to " + name;
             modal.style.display = "flex";
-
-            // 2. Wait 1.5 seconds (Fake loading) then redirect in SAME TAB
+            
             setTimeout(() => {
                 modal.style.display = "none";
-                // Redirect user to the page (Same Tab)
-                window.location.href = url;
+                window.location.href = url; // Same tab redirect for AN1
             }, 1500);
         }
-
     </script>
 </body>
 </html>
