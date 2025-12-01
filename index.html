@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>FAZ STORE - Infinity</title>
+    <title>FAZ STORE - Fixed Search</title>
     <!-- Ultra Modern Font -->
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;800&display=swap" rel="stylesheet">
     <style>
@@ -35,6 +35,454 @@
         .view {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             overflow-y: auto; overflow-x: hidden;
+            background: var(--bg-body);
+            transition: transform 0.4s var(--ease-smooth), opacity 0.4s ease;
+            padding-bottom: 80px; 
+        }
+
+        .view.hidden { transform: translateX(100%); opacity: 0; pointer-events: none; }
+        .view.active { transform: translateX(0); opacity: 1; pointer-events: all; }
+        
+        #productView { z-index: 50; background: var(--bg-body); padding-bottom: 0; }
+
+        /* --- HEADER --- */
+        .header {
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 40;
+            background: rgba(5, 5, 5, 0.8); backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .brand { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+        .brand span { color: var(--primary); }
+        .verified-badge { width: 20px; height: 20px; filter: drop-shadow(0 0 8px var(--secondary)); }
+
+        .search-trigger {
+            width: 40px; height: 40px; border-radius: 50%; background: #1a1a1a;
+            display: flex; align-items: center; justify-content: center; font-size: 18px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .search-trigger:active { transform: scale(0.9); }
+
+        /* --- HERO --- */
+        .hero-wrap {
+            height: 220px; position: relative; overflow: hidden; margin: 20px;
+            border-radius: 24px; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+        .hero-slide {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover; background-position: center;
+        }
+        .hero-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(to top, #000 0%, transparent 80%);
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 25px;
+        }
+        .hero-tag { background: var(--primary); color: #000; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 800; width: fit-content; margin-bottom: 8px; }
+        .hero-title { font-size: 28px; font-weight: 800; line-height: 1.1; max-width: 80%; }
+
+        /* --- CATEGORIES --- */
+        .cat-scroll {
+            display: flex; gap: 12px; padding: 0 20px; overflow-x: auto;
+            scrollbar-width: none; margin-bottom: 25px;
+        }
+        .cat-chip {
+            padding: 10px 20px; background: #1a1a1a; border-radius: 50px;
+            font-size: 13px; font-weight: 600; color: #888; white-space: nowrap;
+            border: 1px solid rgba(255,255,255,0.05); transition: 0.3s;
+        }
+        .cat-chip.active { background: var(--primary); color: #000; border-color: var(--primary); }
+
+        /* --- GRID --- */
+        .section-title { padding: 0 20px; font-size: 18px; font-weight: 700; margin-bottom: 15px; }
+        .grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 15px; padding: 0 20px 40px 20px;
+        }
+
+        .card {
+            background: var(--bg-surface); border-radius: 20px; padding: 12px;
+            position: relative; transition: 0.2s; cursor: pointer;
+            border: 1px solid rgba(255,255,255,0.03);
+        }
+        .card:active { transform: scale(0.96); }
+
+        .card-img {
+            width: 100%; aspect-ratio: 1; border-radius: 16px; object-fit: cover;
+            background: #222; margin-bottom: 12px;
+        }
+        .badge {
+            position: absolute; top: 10px; left: 10px; font-size: 9px; font-weight: 800;
+            padding: 4px 8px; border-radius: 6px; z-index: 2;
+        }
+        .badge-faz { background: rgba(0, 255, 170, 0.9); color: #000; }
+        .badge-play { background: rgba(255, 255, 255, 0.9); color: #000; }
+
+        .card-title { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .card-sub { font-size: 11px; color: var(--text-sec); margin-top: 2px; }
+
+        /* --- PRODUCT PAGE --- */
+        .prod-nav {
+            position: absolute; top: 0; left: 0; width: 100%; padding: 20px;
+            display: flex; justify-content: space-between; z-index: 10;
+        }
+        .back-btn {
+            width: 40px; height: 40px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 20px; border: none; cursor: pointer;
+        }
+
+        .prod-header { height: 300px; position: relative; }
+        .prod-cover { width: 100%; height: 100%; object-fit: cover; mask-image: linear-gradient(to bottom, black 50%, transparent 100%); }
+        
+        .prod-info-card { margin-top: -60px; padding: 0 20px; position: relative; z-index: 5; }
+        .prod-icon {
+            width: 100px; height: 100px; border-radius: 24px; border: 4px solid var(--bg-body);
+            background: #000; object-fit: cover; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .prod-meta { margin-top: 15px; }
+        .prod-title { font-size: 28px; font-weight: 800; line-height: 1.2; }
+        .prod-dev { color: var(--text-sec); font-size: 14px; margin-top: 5px; }
+
+        .tags-row { display: flex; gap: 10px; margin-top: 15px; }
+        .tag-pill {
+            padding: 6px 12px; background: #1a1a1a; border-radius: 8px; font-size: 11px; font-weight: 600;
+            display: flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .prod-desc { padding: 25px 20px; color: #ccc; font-size: 14px; line-height: 1.6; }
+        
+        .screens-scroll {
+            display: flex; gap: 15px; padding: 0 20px 30px 20px; overflow-x: auto; scrollbar-width: none;
+        }
+        .screen-img {
+            width: 200px; height: 350px; border-radius: 16px; object-fit: cover; background: #1a1a1a;
+        }
+
+        .bottom-action-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%; padding: 20px;
+            background: var(--bg-body); border-top: 1px solid rgba(255,255,255,0.05);
+            z-index: 60; display: flex; gap: 15px; align-items: center;
+        }
+        .action-btn {
+            flex: 1; padding: 16px; border-radius: 16px; font-size: 16px; font-weight: 800;
+            border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.2s;
+        }
+        .act-faz { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary-dim); }
+        .act-play { background: var(--secondary); color: #fff; }
+
+        /* --- SEARCH OVERLAY --- */
+        #searchOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px); z-index: 90; padding: 20px;
+            opacity: 0; pointer-events: none; transition: 0.3s;
+        }
+        #searchOverlay.visible { opacity: 1; pointer-events: all; }
+        .search-inp {
+            width: 100%; background: #222; border: none; padding: 20px; border-radius: 20px;
+            color: #fff; font-size: 18px; font-family: inherit; margin-bottom: 20px;
+        }
+
+        /* --- BROWSER --- */
+        #browserFrame {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200;
+            background: #000; display: none; flex-direction: column;
+        }
+        .b-nav { padding: 10px 20px; background: #111; display: flex; justify-content: space-between; }
+        iframe { flex: 1; border: none; background: #fff; }
+
+        /* --- LOADING OVERLAY --- */
+        #scanOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 100;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .radar {
+            width: 100px; height: 100px; border: 2px solid #333; border-radius: 50%; position: relative;
+            margin-bottom: 30px; border-top-color: var(--primary); animation: spin 1s infinite linear;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Skeleton */
+        .skel { background: #1a1a1a; border-radius: 20px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+    </style>
+</head>
+<body>
+
+    <!-- HOME VIEW -->
+    <div class="view active" id="homeView">
+        <header class="header">
+            <div class="brand">
+                FAZ<span>STORE</span>
+                <img src="https://i.supaimg.com/ed405240-9db3-4d6e-8cc1-1f070d18f5d9.png" class="verified-badge">
+            </div>
+            <div class="search-trigger" onclick="toggleSearch()">🔍</div>
+        </header>
+
+        <!-- Hero Slider (Static for now to prevent bugs) -->
+        <div class="hero-wrap">
+            <div class="hero-slide active" style="background-image: url('https://image.winudf.com/v2/image1/Y29tLm1vamFuZy5taW5lY3JhZnRwZV9zY3JlZW5fMF8xNjcxOTc2NjAzXzA2NA/screen-0.jpg?fakeurl=1&type=.jpg')">
+                <div class="hero-overlay">
+                    <div class="hero-tag">FEATURED</div>
+                    <div class="hero-title">Minecraft: Pocket Edition</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Categories -->
+        <div class="cat-scroll">
+            <div class="cat-chip active" onclick="loadCategory('Popular', this)">For You</div>
+            <div class="cat-chip" onclick="loadCategory('Action', this)">Action</div>
+            <div class="cat-chip" onclick="loadCategory('Racing', this)">Racing</div>
+            <div class="cat-chip" onclick="loadCategory('RPG', this)">RPG</div>
+            <div class="cat-chip" onclick="loadCategory('Tools', this)">Tools</div>
+        </div>
+
+        <div class="section-title" id="gridTitle">Recommended Apps</div>
+        <div class="grid" id="mainGrid">
+            <!-- Items injected here -->
+        </div>
+    </div>
+
+    <!-- PRODUCT VIEW -->
+    <div class="view hidden" id="productView">
+        <div class="prod-nav">
+            <button class="back-btn" onclick="goBack()">←</button>
+        </div>
+
+        <div class="prod-header">
+            <img id="pCover" class="prod-cover" src="">
+        </div>
+
+        <div class="prod-info-card">
+            <img id="pIcon" class="prod-icon" src="">
+            <div class="prod-meta">
+                <div class="prod-title" id="pTitle">App Name</div>
+                <div class="prod-dev" id="pDev">Developer Name</div>
+                <div class="tags-row">
+                    <div class="tag-pill" id="pSourcePill">FAZ STORE</div>
+                    <div class="tag-pill">⭐ 4.8</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="prod-desc">
+            <h3 style="color:#fff; margin-bottom:10px;">About this app</h3>
+            Get the latest version directly from our servers. 
+            <br><br>• Version: Latest<br>• Secure: Yes
+        </div>
+
+        <div class="section-title">Preview</div>
+        <div class="screens-scroll">
+            <div class="screen-img"></div>
+            <div class="screen-img"></div>
+        </div>
+
+        <div class="bottom-action-bar">
+            <button id="pActionBtn" class="action-btn act-faz" onclick="startDownload()">Download</button>
+        </div>
+    </div>
+
+    <!-- SEARCH OVERLAY -->
+    <div id="searchOverlay">
+        <div style="display:flex; justify-content:flex-end;">
+            <button class="back-btn" onclick="toggleSearch()">✕</button>
+        </div>
+        <br>
+        <input type="text" class="search-inp" id="liveSearch" placeholder="Search apps (e.g. WhatsApp)..." autofocus>
+        <div class="grid" id="searchGrid" style="padding:0;"></div>
+    </div>
+
+    <!-- SCANNING OVERLAY -->
+    <div id="scanOverlay">
+        <div class="radar"></div>
+        <div class="scan-text" id="scanStatus" style="color:var(--primary)">Connecting...</div>
+    </div>
+
+    <!-- BROWSER -->
+    <div id="browserFrame">
+        <div class="b-nav">
+            <span style="color:var(--primary); font-weight:bold;">🔒 Secure Gateway</span>
+            <button style="color:#fff; background:none; border:none; font-size:18px;" onclick="closeBrowser()">Done</button>
+        </div>
+        <iframe id="webContent" src=""></iframe>
+    </div>
+
+    <script>
+        const API_AN1 = "https://api.xyro.site/apk/an1-search?search=";
+        const API_PLAY = "https://api.xyro.site/apk/playstore-search?query=";
+        
+        let currentApp = null;
+        // List of specific categories to Shuffle (Home Page)
+        const shuffleCategories = ["Popular", "Action", "Racing", "RPG", "Tools", "Strategy", "Simulation"];
+
+        window.onload = () => {
+            loadData("Popular");
+        };
+
+        // --- NAVIGATION ---
+        function goBack() {
+            document.getElementById("productView").classList.add("hidden");
+            document.getElementById("productView").classList.remove("active");
+            document.getElementById("homeView").classList.remove("hidden");
+        }
+
+        function openProduct(app) {
+            currentApp = app;
+            document.getElementById("pCover").src = app.img;
+            document.getElementById("pIcon").src = app.img;
+            document.getElementById("pTitle").innerText = app.title;
+            document.getElementById("pDev").innerText = app.dev;
+            
+            const btn = document.getElementById("pActionBtn");
+            const pill = document.getElementById("pSourcePill");
+
+            if(app.src === 'PLAY') {
+                btn.className = "action-btn act-play";
+                btn.innerText = "Get from Play Store";
+                pill.innerText = "OFFICIAL";
+                pill.style.color = "var(--secondary)";
+            } else {
+                btn.className = "action-btn act-faz";
+                btn.innerText = "Download (Faz Store)";
+                pill.innerText = "MOD UNLOCKED";
+                pill.style.color = "var(--primary)";
+            }
+
+            document.getElementById("productView").classList.remove("hidden");
+            document.getElementById("productView").classList.add("active");
+        }
+
+        // --- DATA LOGIC (FIXED SEARCH) ---
+        async function loadData(query, targetGrid = "mainGrid") {
+            const grid = document.getElementById(targetGrid);
+            grid.innerHTML = Array(6).fill('<div class="card" style="height:200px; background:#1a1a1a;"></div>').join('');
+
+            try {
+                const [an1, play] = await Promise.allSettled([
+                    fetch(API_AN1 + encodeURIComponent(query)).then(r => r.json()),
+                    fetch(API_PLAY + encodeURIComponent(query)).then(r => r.json())
+                ]);
+
+                let apps = [];
+                // Play Store Parsing
+                if(play.status === "fulfilled") {
+                    let d = play.value;
+                    let list = (d.result && Array.isArray(d.result)) ? d.result : (Array.isArray(d) ? d : []);
+                    list.forEach(i => apps.push({ src: 'PLAY', title: i.name||"App", img: i.img||"", dev: i.developer||"Google Play", link: i.link }));
+                }
+                // Faz Store Parsing
+                if(an1.status === "fulfilled" && an1.value.status) {
+                    (an1.value.result || []).forEach(i => apps.push({ src: 'FAZ', title: i.title||i.name||"MOD", img: i.image||i.icon||"", dev: i.developer||"Faz Store", link: i.link }));
+                }
+
+                // --- THE CRITICAL FIX ---
+                // Agar query Home Page wali categories me se hai, tabhi shuffle karo
+                if (shuffleCategories.includes(query)) {
+                    apps.sort(() => Math.random() - 0.5);
+                } else {
+                    // Search Query Logic: Sort by Relevance
+                    const lowerQ = query.toLowerCase();
+                    apps.sort((a, b) => {
+                        const nameA = a.title.toLowerCase();
+                        const nameB = b.title.toLowerCase();
+                        
+                        // Exact match priority
+                        if (nameA === lowerQ) return -1;
+                        if (nameB === lowerQ) return 1;
+
+                        // Starts with query priority
+                        const startsA = nameA.startsWith(lowerQ);
+                        const startsB = nameB.startsWith(lowerQ);
+                        if (startsA && !startsB) return -1;
+                        if (!startsA && startsB) return 1;
+
+                        return 0; 
+                    });
+                }
+
+                renderGrid(apps, grid);
+            } catch(e) { grid.innerHTML = ""; }
+        }
+
+        function renderGrid(apps, container) {
+            container.innerHTML = "";
+            apps.forEach(app => {
+                const isPlay = app.src === 'PLAY';
+                const div = document.createElement("div");
+                div.className = "card";
+                div.innerHTML = `
+                    <div class="badge ${isPlay?'badge-play':'badge-faz'}">${isPlay?'OFFICIAL':'FAZ MOD'}</div>
+                    <img src="${app.img}" class="card-img" onerror="this.src='https://via.placeholder.com/150'">
+                    <div class="card-title">${app.title}</div>
+                    <div class="card-sub">${app.dev}</div>
+                `;
+                div.onclick = () => openProduct(app);
+                container.appendChild(div);
+            });
+        }
+
+        function loadCategory(cat, el) {
+            document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById("gridTitle").innerText = cat;
+            loadData(cat);
+        }
+
+        // --- SEARCH ---
+        function toggleSearch() {
+            const el = document.getElementById("searchOverlay");
+            el.classList.toggle("visible");
+            if(el.classList.contains("visible")) document.getElementById("liveSearch").focus();
+        }
+
+        let debounceTimer;
+        document.getElementById("liveSearch").addEventListener("input", (e) => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                const q = e.target.value.trim();
+                if(q.length > 2) loadData(q, "searchGrid");
+            }, 600);
+        });
+
+        // --- DOWNLOAD ---
+        function startDownload() {
+            if(currentApp.src === 'PLAY') {
+                window.open(currentApp.link, '_blank');
+            } else {
+                const scan = document.getElementById("scanOverlay");
+                const txt = document.getElementById("scanStatus");
+                scan.style.display = "flex";
+                
+                let steps = ["Connecting...", "Verifying File...", "Starting Download..."];
+                let i = 0;
+                let int = setInterval(() => {
+                    if(i < steps.length) txt.innerText = steps[i];
+                    else {
+                        clearInterval(int);
+                        scan.style.display = "none";
+                        openBrowser(currentApp.link);
+                    }
+                    i++;
+                }, 800);
+            }
+        }
+
+        function openBrowser(url) {
+            document.getElementById("webContent").src = url;
+            document.getElementById("browserFrame").style.display = "flex";
+        }
+        function closeBrowser() {
+            document.getElementById("browserFrame").style.display = "none";
+            document.getElementById("webContent").src = "";
+        }
+    </script>
+</body>
+</html>            overflow-y: auto; overflow-x: hidden;
             background: var(--bg-body);
             transition: transform 0.4s var(--ease-smooth), opacity 0.4s ease;
             padding-bottom: 80px; /* Space for bottom nav */
