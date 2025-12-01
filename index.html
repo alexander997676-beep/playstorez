@@ -3,14 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FAZ STORE - Ultimate</title>
+    <title>FAZ STORE - Ultimate Market</title>
     <style>
         :root {
-            --play-color: #0086f8;
-            --faz-color: #00e676;
+            --play-color: #0086f8; /* Blue */
+            --faz-color: #00e676;  /* Green */
             --dark: #121212;
             --card: #1e1e1e;
             --text: #ffffff;
+            --text-sec: #b0b0b0;
         }
 
         body {
@@ -19,7 +20,7 @@
             color: var(--text);
             margin: 0;
             padding: 0;
-            overflow-x: hidden;
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
 
         /* --- Header --- */
@@ -34,30 +35,31 @@
         }
 
         .logo {
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 900;
             color: var(--faz-color);
             cursor: pointer;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 15px;
             display: inline-block;
         }
         .logo span { color: #fff; }
 
         .search-wrap {
             width: 90%;
-            max-width: 500px;
+            max-width: 600px;
             margin: 0 auto;
-            position: relative;
             display: flex;
+            position: relative;
         }
         
         input {
             flex: 1;
-            padding: 12px 15px;
+            padding: 12px 20px;
             background: #333;
-            border: none;
-            border-radius: 8px 0 0 8px;
+            border: 1px solid #444;
+            border-radius: 50px 0 0 50px;
             color: #fff;
             outline: none;
             font-size: 16px;
@@ -66,16 +68,17 @@
         .search-btn {
             background: var(--faz-color);
             border: none;
-            padding: 0 20px;
-            border-radius: 0 8px 8px 0;
+            padding: 0 25px;
+            border-radius: 0 50px 50px 0;
             font-weight: bold;
             cursor: pointer;
             color: #000;
+            font-size: 16px;
         }
 
         /* --- Grid --- */
         .container {
-            max-width: 1000px;
+            max-width: 1100px;
             margin: 20px auto;
             padding: 0 15px;
             padding-bottom: 80px;
@@ -83,7 +86,7 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 15px;
         }
 
@@ -93,19 +96,22 @@
             overflow: hidden;
             cursor: pointer;
             position: relative;
-            transition: transform 0.2s;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 1px solid #333;
         }
-        .card:active { transform: scale(0.95); }
+        .card:hover { transform: translateY(-5px); box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
         .tag {
             position: absolute;
-            top: 8px; right: 8px;
+            top: 8px; left: 8px;
             font-size: 10px;
             padding: 4px 8px;
             border-radius: 4px;
             font-weight: bold;
             color: #fff;
             z-index: 2;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
         }
         .tag-play { background: var(--play-color); }
         .tag-faz { background: var(--faz-color); color: #000; }
@@ -114,19 +120,39 @@
             width: 100%;
             height: 140px;
             object-fit: cover;
-            background: #333;
+            background: #222;
         }
 
         .card-info { padding: 12px; }
-        .app-title { font-size: 14px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 5px; }
-        .app-dev { font-size: 11px; color: #aaa; }
+        
+        .app-title { 
+            font-size: 14px; 
+            font-weight: bold; 
+            white-space: nowrap; 
+            overflow: hidden; 
+            text-overflow: ellipsis; 
+            margin-bottom: 5px;
+            color: #fff;
+        }
+        
+        .app-dev { 
+            font-size: 11px; 
+            color: var(--text-sec); 
+            margin-bottom: 5px;
+        }
 
-        /* --- IN-APP BROWSER / IFRAME OVERLAY --- */
+        .rating {
+            font-size: 11px;
+            color: #fbc02d;
+            font-weight: bold;
+        }
+
+        /* --- IN-APP BROWSER (IFRAME) --- */
         #webOverlay {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: #fff;
+            background: #121212;
             z-index: 2000;
             flex-direction: column;
         }
@@ -145,7 +171,7 @@
         
         .close-browser {
             background: #ff4444; color: white; border: none;
-            padding: 5px 15px; border-radius: 4px; font-weight: bold; cursor: pointer;
+            padding: 6px 16px; border-radius: 4px; font-weight: bold; cursor: pointer;
         }
 
         iframe {
@@ -155,22 +181,8 @@
             background: #fff;
         }
 
-        /* Fallback message inside iframe area */
-        .iframe-error {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: #333;
-            text-align: center;
-            z-index: -1; /* Behind iframe */
-        }
-        .ext-link {
-            display: inline-block; margin-top: 10px; padding: 10px 20px;
-            background: var(--faz-color); color: #000; text-decoration: none; border-radius: 5px;
-            font-weight: bold;
-        }
-
-        #loader { display: none; text-align: center; padding: 50px; }
+        /* Loading / Messages */
+        #loader { display: none; text-align: center; padding: 50px; color: #aaa; }
         .error-msg { text-align: center; color: #ff5252; padding: 20px; }
 
     </style>
@@ -180,32 +192,23 @@
     <header>
         <div class="logo" onclick="goHome()">FAZ <span>STORE</span></div>
         <div class="search-wrap">
-            <input type="text" id="searchInp" placeholder="Search (e.g. Minecraft)...">
+            <input type="text" id="searchInp" placeholder="Search (e.g. WhatsApp)...">
             <button class="search-btn" onclick="searchApps()">GO</button>
         </div>
     </header>
 
     <div class="container">
         <h3 id="pageTitle" style="border-left: 4px solid var(--faz-color); padding-left: 10px;">Recommended</h3>
-        <div id="loader">Fetching Data...</div>
+        <div id="loader">Searching Database...</div>
         <div id="grid" class="grid"></div>
     </div>
 
-    <!-- IN-APP BROWSER OVERLAY -->
-    <!-- Ye wo box hai jo website ke andar hi khulega -->
+    <!-- IN-APP BROWSER (Sirf AN1/Faz Store ke liye) -->
     <div id="webOverlay">
         <div class="browser-header">
             <div class="browser-title" id="browserTitle">Downloading...</div>
             <button class="close-browser" onclick="closeBrowser()">CLOSE ✕</button>
         </div>
-        
-        <!-- Agar Iframe load na ho (Security reason se), to ye button dikhega -->
-        <div class="iframe-error">
-            <h3>Loading Download Page...</h3>
-            <p>If the page stays white, click below:</p>
-            <a id="fallbackLink" href="#" target="_blank" class="ext-link">OPEN MANUALLY</a>
-        </div>
-
         <iframe id="appFrame" src=""></iframe>
     </div>
 
@@ -218,8 +221,8 @@
         function goHome() {
             closeBrowser();
             document.getElementById("searchInp").value = "";
-            document.getElementById("pageTitle").innerText = "Trending Games & Apps";
-            fetchData("Racing"); 
+            document.getElementById("pageTitle").innerText = "Top Apps & Games";
+            fetchData("Social"); // Default content
         }
 
         function searchApps() {
@@ -238,6 +241,7 @@
             loader.style.display = "block";
 
             try {
+                // Fetch both APIs in parallel
                 const [an1, play] = await Promise.allSettled([
                     fetch(API_AN1 + encodeURIComponent(query)).then(r => r.json()),
                     fetch(API_PLAY + encodeURIComponent(query)).then(r => r.json())
@@ -246,91 +250,104 @@
                 loader.style.display = "none";
                 let allApps = [];
 
-                // AN1 Data
-                if(an1.status === "fulfilled" && an1.value.status === true) {
-                    (an1.value.result || []).forEach(a => {
+                // --- 1. HANDLE PLAY STORE DATA (Updated JSON Structure) ---
+                if(play.status === "fulfilled") {
+                    const data = play.value;
+                    // Check logic based on your JSON example
+                    let playList = [];
+                    
+                    if (data.result && Array.isArray(data.result)) {
+                        playList = data.result;
+                    } else if (Array.isArray(data)) {
+                        playList = data;
+                    }
+
+                    playList.forEach(item => {
+                        // Using 'name', 'img', 'rate2' as per your provided JSON
                         allApps.push({
-                            source: 'FAZ',
-                            title: a.title || a.name || "Unknown",
-                            img: a.image || a.icon || "https://via.placeholder.com/150",
-                            dev: a.developer || "Faz Store",
-                            link: a.link
+                            source: 'PLAY',
+                            title: item.name || "Unknown App",
+                            img: item.img || "https://via.placeholder.com/150",
+                            dev: item.developer || "Google LLC",
+                            rating: item.rate2 || "4.5",
+                            link: item.link
                         });
                     });
                 }
 
-                // Play Store Data
-                if(play.status === "fulfilled") {
-                    let d = play.value;
-                    let list = Array.isArray(d) ? d : (d.data || d.result || []);
-                    list.forEach(a => {
-                        const pid = a.id || a.packageName;
-                        if(pid) {
-                            allApps.push({
-                                source: 'PLAY',
-                                title: a.title || a.appName || "Unknown",
-                                img: a.icon || a.image || "https://via.placeholder.com/150",
-                                dev: a.developer || "Google Play",
-                                link: `https://play.google.com/store/apps/details?id=${pid}` // We will embed this too!
-                            });
-                        }
+                // --- 2. HANDLE AN1 / FAZ STORE DATA ---
+                if(an1.status === "fulfilled" && an1.value.status === true) {
+                    const an1List = an1.value.result || [];
+                    an1List.forEach(item => {
+                        allApps.push({
+                            source: 'FAZ',
+                            title: item.title || item.name || "MOD App",
+                            img: item.image || item.icon || "https://via.placeholder.com/150",
+                            dev: item.developer || "Faz Store",
+                            rating: "MOD", // AN1 usually implies MOD
+                            link: item.link
+                        });
                     });
                 }
 
+                // --- 3. MIX & RENDER ---
+                // Shuffle array
                 allApps.sort(() => Math.random() - 0.5);
 
                 if(allApps.length === 0) {
-                    grid.innerHTML = "<div class='error-msg'>No apps found.</div>";
+                    grid.innerHTML = "<div class='error-msg'>No apps found. Try different keywords.</div>";
                     return;
                 }
 
                 allApps.forEach(app => {
                     const div = document.createElement("div");
                     div.className = "card";
+                    
                     const tagClass = app.source === 'PLAY' ? 'tag-play' : 'tag-faz';
                     const tagText = app.source === 'PLAY' ? 'PLAY STORE' : 'FAZ STORE';
+                    const star = app.source === 'PLAY' ? '★' : '⚡';
 
                     div.innerHTML = `
                         <div class="tag ${tagClass}">${tagText}</div>
-                        <img src="${app.img}" class="card-img">
+                        <img src="${app.img}" class="card-img" onerror="this.src='https://via.placeholder.com/150?text=No+Img'">
                         <div class="card-info">
                             <div class="app-title">${app.title}</div>
                             <div class="app-dev">${app.dev}</div>
+                            <div class="rating">${star} ${app.rating}</div>
                         </div>
                     `;
 
-                    // Click event: OPEN IN-APP BROWSER
+                    // CLICK ACTION
                     div.onclick = () => {
-                        openInAppBrowser(app.link, app.title);
+                        if (app.source === 'PLAY') {
+                            // Play Store apps open in New Tab (Direct Link)
+                            window.open(app.link, '_blank');
+                        } else {
+                            // Faz Store apps open INSIDE (Iframe)
+                            openInAppBrowser(app.link, app.title);
+                        }
                     };
 
                     grid.appendChild(div);
                 });
 
             } catch (e) {
-                console.log(e);
+                console.error(e);
                 loader.style.display = "none";
+                grid.innerHTML = "<div class='error-msg'>Connection Failed. Check internet.</div>";
             }
         }
 
-        // --- IN-APP BROWSER LOGIC ---
+        // --- BROWSER OVERLAY LOGIC ---
         function openInAppBrowser(url, title) {
             const overlay = document.getElementById("webOverlay");
             const iframe = document.getElementById("appFrame");
             const browserTitle = document.getElementById("browserTitle");
-            const fallback = document.getElementById("fallbackLink");
 
-            // Setup the UI
-            browserTitle.innerText = "Browsing: " + title;
-            fallback.href = url; // Backup link
-            
-            // Show Overlay
+            browserTitle.innerText = "Downloading: " + title;
             overlay.style.display = "flex";
-            document.body.style.overflow = "hidden"; // Stop background scroll
+            document.body.style.overflow = "hidden"; // Stop scrolling behind
 
-            // Load URL inside iframe
-            // Note: Some websites (like Google Play) might BLOCK iframes.
-            // If they block, the user sees the 'iframe-error' message behind it.
             iframe.src = url; 
         }
 
@@ -340,7 +357,7 @@
             
             overlay.style.display = "none";
             document.body.style.overflow = "auto";
-            iframe.src = ""; // Clear iframe to stop audio/video
+            iframe.src = ""; // Stop loading
         }
 
     </script>
